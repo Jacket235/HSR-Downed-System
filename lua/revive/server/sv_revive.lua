@@ -180,6 +180,12 @@ hook.Add("Think", "homigrad_style_revives_ragdoll_control", function()
 	end
 end)
 
+hook.Add("PlayerUse", "homigrad_style_revives_pu", function(ply, ent)
+	if ent:GetNWEntity("owner") and ent:GetClass() == "prop_ragdoll" then
+		print(ply:Nick() .. " is reviving " .. ent:GetNWEntity("owner"):Nick())
+	end
+end)
+
 hook.Add("PlayerDeath", "homigrad_style_revives_pd", function(ply, _, atkr)
 	local downed_ragdoll = ply:GetNWEntity("downed_ragdoll")
 

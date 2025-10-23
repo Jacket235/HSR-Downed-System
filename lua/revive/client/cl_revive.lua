@@ -92,7 +92,7 @@ hook.Add("HUDPaint", "downed_bleed_out_timer", function()
 	end
 end)
 
-hook.Add("PostDrawOpaqueRenderables", "drawbullshit", function()
+hook.Add("PostDrawOpaqueRenderables", "draw_downed_players_icons", function()
     local lp = LocalPlayer()
     local eyepos = EyePos()
     local maxDist = 4000
@@ -104,7 +104,7 @@ hook.Add("PostDrawOpaqueRenderables", "drawbullshit", function()
         if eyepos:DistToSqr(rag:GetPos()) > maxDistSqr then continue end
 
         local pos = rag:GetPos()
-        pos.z = pos.z + 40
+        pos.z = pos.z + 20
 
         local ang = (eyepos - pos):Angle()
         ang:RotateAroundAxis(ang:Right(), 270)
@@ -121,15 +121,12 @@ hook.Add("PostDrawOpaqueRenderables", "drawbullshit", function()
         cam.Start3D2D(pos, ang, math.max(240, math.sqrt(distance)) / 2400)
             surface.SetMaterial(Material("vgui/white"))
 
-            surface.SetDrawColor(0, 0, 0, 200)
-            surface.DrawPoly(draw.JCircle(0, 0, 60)) 
-
-            surface.SetDrawColor(100, 100, 100, 255)
+            surface.SetDrawColor(57, 59, 61, 255)
             draw.JRing(0, 0, 60, 10, 0, 360)
-            surface.SetDrawColor(250, 60, 60, 255)
+            surface.SetDrawColor(167, 15, 16, 255)
             draw.JRing(0, 0, 60, 10, 0, 360 * (1 - fraction))
 
-            surface.SetDrawColor(255, 255, 255, 255)
+            surface.SetDrawColor(123, 183, 232, 255)
             surface.SetMaterial(health_icon) 
             surface.DrawTexturedRect(-32, -32, 64, 64)
         cam.End3D2D()

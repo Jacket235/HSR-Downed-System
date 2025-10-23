@@ -73,6 +73,7 @@ hook.Add("PlayerHurt", "homigrad_style_revives_ph", function(ply, atkr, hp, dmg)
 		local ragdoll = createDownedRagdoll(ply)
 		local controller = createRagdollController(ply, ragdoll)
 		storeHandBones(ragdoll, ply)
+		ragdoll.attacker = atkr
 	end
 end)
 
@@ -99,11 +100,18 @@ hook.Add("Think", "homigrad_style_revives_ragdoll_control", function()
 
 		local downed_ragdoll = ply:GetNWEntity("downed_ragdoll")
 
+		local headIndex = downed_ragdoll:LookupAttachment("eyes")
+		local head = downed_ragdoll:GetAttachment(headIndex)
+
 		local trace = util.TraceLine({
-			start = ply:EyePos(),
-			endpos = ply:EyePos() + ply:EyeAngles():Forward() * 150,
-			filter = ply
+			start = head.Pos,
+			endpos = head.Pos + ply:EyeAngles():Forward() * 150,
+			filter = { ply, downed_ragdoll }
 		})
+
+		-- weak arm settings (injured feel)
+        local springStrength = 15     -- weak pull
+        local damping = 9             -- strong slowdown
 
 		if ply:KeyDown(IN_ATTACK) and downed_ragdoll.LeftHandPhys then
 			local phys = downed_ragdoll:GetPhysicsObjectNum(downed_ragdoll.LeftHandPhys)
@@ -115,10 +123,6 @@ hook.Add("Think", "homigrad_style_revives_ragdoll_control", function()
 
             local dist = dir:Length()
             dir:Normalize()
-
-            -- weak arm settings (injured feel)
-            local springStrength = 15     -- weak pull
-            local damping = 9             -- strong slowdown
 
             local vel = phys:GetVelocity()
             local force = dir * dist * springStrength - vel * damping
@@ -132,7 +136,25 @@ hook.Add("Think", "homigrad_style_revives_ragdoll_control", function()
 		end
 
 		if ply:KeyDown(IN_ATTACK2) then
-			print("right hand")
+			local phys = downed_ragdoll:GetPhysicsObjectNum(downed_ragdoll.RightHandPhys)
+			if not IsValid(phys) then continue end
+
+            local targetPos = trace.HitPos
+            local currentPos = phys:GetPos()
+            local dir = targetPos - currentPos
+
+            local dist = dir:Length()
+            dir:Normalize()
+
+            local vel = phys:GetVelocity()
+            local force = dir * dist * springStrength - vel * damping
+
+            -- clamp force so it can’t drag the body
+            force.x = math.Clamp(force.x, -120, 120)
+            force.y = math.Clamp(force.y, -120, 120)
+            force.z = math.Clamp(force.z, -120, 120)
+
+            phys:ApplyForceCenter(force)
 		end
 	end
 end)

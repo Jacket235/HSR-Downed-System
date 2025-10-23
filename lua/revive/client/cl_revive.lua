@@ -72,7 +72,7 @@ hook.Add("CalcView", "downed_state_view", function(ply, pos, ang, fov)
 end)
 
 hook.Add("HUDPaint", "downed_bleed_out_timer", function()
-	if IsValid(LocalPlayer():GetNWEntity("downed_ragdoll")) then
+	if IsValid(LocalPlayer():GetNWEntity("downed_ragdoll")) and LocalPlayer():Alive() then
 		local downed_ragdoll = LocalPlayer():GetNWEntity("downed_ragdoll")
 		local startBleedOutTime = downed_ragdoll:GetNWFloat("bleedOutStartTime", 0)
 

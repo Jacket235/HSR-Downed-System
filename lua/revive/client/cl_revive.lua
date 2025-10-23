@@ -77,7 +77,7 @@ hook.Add("HUDPaint", "downed_bleed_out_timer", function()
 		local startBleedOutTime = downed_ragdoll:GetNWFloat("bleedOutStartTime", 0)
 
 		local elapsed = CurTime() - startBleedOutTime
-    	local fraction = math.Clamp(elapsed / 5, 0, 1)
+    	local fraction = math.Clamp(elapsed / 60, 0, 1)
 
 		surface.SetDrawColor(255, 255, 255, 255)
 		draw.JRing(ScrW() / 2, ScrH() / 2, 75, 7, 0, 360 * (1 - fraction))

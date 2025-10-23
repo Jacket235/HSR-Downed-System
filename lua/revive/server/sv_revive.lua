@@ -9,7 +9,6 @@ local function createDownedRagdoll(ply)
 	ragdoll:Spawn()
 	ragdoll:Activate()
 
-	// this part was just stolen from the original shit homigrad code
     local vel = ply:GetVelocity()/1 + (force or Vector(0,0,0))
 	for i = 0, ragdoll:GetPhysicsObjectCount() - 1 do
 		local physobj = ragdoll:GetPhysicsObjectNum( i )
@@ -55,38 +54,95 @@ local function createRagdollController(ply, ragdoll)
 	ply:StripWeapons()
 end
 
+local function storeHandBones(ragdoll, ply)
+	local function findPhysBone(bonename)
+		local boneIndex = ply:LookupBone(bonename)
+		if not boneIndex then return nil end
+		local physID = ragdoll:TranslateBoneToPhysBone(boneIndex)
+		return physID
+	end
+
+	ragdoll.LeftHandPhys  = findPhysBone("ValveBiped.Bip01_L_Hand")
+	ragdoll.RightHandPhys = findPhysBone("ValveBiped.Bip01_R_Hand")
+end
+
 hook.Add("PlayerHurt", "homigrad_style_revives_ph", function(ply, atkr, hp, dmg)
 	if hp <= 0 and not ply:GetNWBool("downed") then 
 		ply:SetHealth(1)
 
 		local ragdoll = createDownedRagdoll(ply)
 		local controller = createRagdollController(ply, ragdoll)
+		storeHandBones(ragdoll, ply)
 	end
 end)
 
-hook.Add("Think", "homigrad_style_revives_think", function()
+hook.Add("Think", "homigrad_style_revives_bleed_out", function()
 	for _, ply in ipairs(player.GetAll()) do
-		if ply:GetNWBool("downed") then
-			local downed_ragdoll = ply:GetNWEntity("downed_ragdoll")
+		if not ply:GetNWBool("downed") then continue end
 
-			if IsValid(downed_ragdoll) then
-				local elapsedTime = CurTime() - downed_ragdoll:GetNWFloat("bleedOutStartTime") 
+		local downed_ragdoll = ply:GetNWEntity("downed_ragdoll")
 
-				if elapsedTime >= 5 then
-					ply:Kill()
-					ply:SetNWBool("downed", false)
-				end
+		if IsValid(downed_ragdoll) then
+			local elapsedTime = CurTime() - downed_ragdoll:GetNWFloat("bleedOutStartTime") 
+
+			if elapsedTime >= 60 then
+				ply:Kill()
+				ply:SetNWBool("downed", false)
 			end
 		end
 	end
 end)
 
+hook.Add("Think", "homigrad_style_revives_ragdoll_control", function()
+	for _, ply in ipairs(player.GetAll()) do
+		if not ply:GetNWBool("downed") or not IsValid(ply:GetNWEntity("downed_ragdoll")) then continue end
+
+		local downed_ragdoll = ply:GetNWEntity("downed_ragdoll")
+
+		local trace = util.TraceLine({
+			start = ply:EyePos(),
+			endpos = ply:EyePos() + ply:EyeAngles():Forward() * 150,
+			filter = ply
+		})
+
+		if ply:KeyDown(IN_ATTACK) and downed_ragdoll.LeftHandPhys then
+			local phys = downed_ragdoll:GetPhysicsObjectNum(downed_ragdoll.LeftHandPhys)
+			if not IsValid(phys) then continue end
+
+            local targetPos = trace.HitPos
+            local currentPos = phys:GetPos()
+            local dir = targetPos - currentPos
+
+            local dist = dir:Length()
+            dir:Normalize()
+
+            -- weak arm settings (injured feel)
+            local springStrength = 15     -- weak pull
+            local damping = 9             -- strong slowdown
+
+            local vel = phys:GetVelocity()
+            local force = dir * dist * springStrength - vel * damping
+
+            -- clamp force so it can’t drag the body
+            force.x = math.Clamp(force.x, -120, 120)
+            force.y = math.Clamp(force.y, -120, 120)
+            force.z = math.Clamp(force.z, -120, 120)
+
+            phys:ApplyForceCenter(force)
+		end
+
+		if ply:KeyDown(IN_ATTACK2) then
+			print("right hand")
+		end
+	end
+end)
+
 hook.Add("PlayerDeath", "homigrad_style_revives_pd", function(ply, _, atkr)
-	if IsValid(ply:GetRagdollEntity()) then 
+	local downed_ragdoll = ply:GetNWEntity("downed_ragdoll")
+
+	if IsValid(downed_ragdoll) and IsValid(ply:GetRagdollEntity()) then 
 		ply:GetRagdollEntity():Remove()
 	end
-
-	local downed_ragdoll = ply:GetNWEntity("downed_ragdoll")
 
 	if IsValid(downed_ragdoll) then
 		ply:SetNWBool("downed", false)

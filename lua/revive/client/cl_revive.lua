@@ -77,6 +77,7 @@ hook.Add("CalcView", "downed_state_view", function(ply, pos, ang, fov)
 end)
 
 local downedPlayers = {}
+local health_icon = Material("homigrad_style_downs/small-health.png")
 
 hook.Add("HUDPaint", "downed_bleed_out_timer", function()
 	if IsValid(LocalPlayer():GetNWEntity("downed_ragdoll")) and LocalPlayer():Alive() then
@@ -124,9 +125,13 @@ hook.Add("PostDrawOpaqueRenderables", "drawbullshit", function()
             surface.DrawPoly(draw.JCircle(0, 0, 60)) 
 
             surface.SetDrawColor(100, 100, 100, 255)
-            draw.JRing(0, 0, 60, 5, 0, 360)
-            surface.SetDrawColor(250, 27, 27, 255)
-            draw.JRing(0, 0, 60, 5, 0, 360 * (1 - fraction))
+            draw.JRing(0, 0, 60, 10, 0, 360)
+            surface.SetDrawColor(250, 60, 60, 255)
+            draw.JRing(0, 0, 60, 10, 0, 360 * (1 - fraction))
+
+            surface.SetDrawColor(255, 255, 255, 255)
+            surface.SetMaterial(health_icon) 
+            surface.DrawTexturedRect(-32, -32, 64, 64)
         cam.End3D2D()
         cam.IgnoreZ(false)
     end

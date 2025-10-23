@@ -103,7 +103,7 @@ hook.Add("Think", "homigrad_style_revives_bleed_out", function()
 		if IsValid(downed_ragdoll) then
 			local elapsedTime = CurTime() - downed_ragdoll:GetNWFloat("bleedOutStartTime") 
 
-			if elapsedTime >= 60 then
+			if elapsedTime >= 30 then
 				ply:SetNWBool("downed", false)
 				ply:Kill()	
 			end

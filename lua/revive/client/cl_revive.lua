@@ -84,7 +84,7 @@ hook.Add("HUDPaint", "downed_bleed_out_timer", function()
 		local startBleedOutTime = downed_ragdoll:GetNWFloat("bleedOutStartTime", 0)
 
 		local elapsed = CurTime() - startBleedOutTime
-    	local fraction = math.Clamp(elapsed / 60, 0, 1)
+    	local fraction = math.Clamp(elapsed / 30, 0, 1)
 
 		surface.SetDrawColor(255, 255, 255, 255)
 		draw.JRing(ScrW() / 2, ScrH() / 2, 75, 7, 0, 360 * (1 - fraction))
@@ -114,19 +114,19 @@ hook.Add("PostDrawOpaqueRenderables", "drawbullshit", function()
         local startBleedOutTime = rag:GetNWFloat("bleedOutStartTime", 0)
 
         local elapsed = CurTime() - startBleedOutTime
-        local fraction = math.Clamp(elapsed / 60, 0, 1)
+        local fraction = math.Clamp(elapsed / 30, 0, 1)
 
         cam.IgnoreZ(true)
-        cam.Start3D2D(pos, ang, math.max(100, math.sqrt(distance)) / 800)
+        cam.Start3D2D(pos, ang, math.max(240, math.sqrt(distance)) / 2400)
             surface.SetMaterial(Material("vgui/white"))
 
             surface.SetDrawColor(0, 0, 0, 200)
-            surface.DrawPoly(draw.JCircle(0, 0, 20)) 
+            surface.DrawPoly(draw.JCircle(0, 0, 60)) 
 
             surface.SetDrawColor(100, 100, 100, 255)
-            draw.JRing(0, 0, 20, 2, 0, 360)
-            surface.SetDrawColor(255, 255, 255, 255)
-            draw.JRing(0, 0, 20, 2, 0, 360 * (1 - fraction))
+            draw.JRing(0, 0, 60, 5, 0, 360)
+            surface.SetDrawColor(250, 27, 27, 255)
+            draw.JRing(0, 0, 60, 5, 0, 360 * (1 - fraction))
         cam.End3D2D()
         cam.IgnoreZ(false)
     end

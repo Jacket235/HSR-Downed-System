@@ -1,3 +1,8 @@
+surface.CreateFont("plyNickFont", {
+    font = "Arial",
+    size = 72
+})
+
 function draw.JCircle(PositionX, PositionY, Radius)
     local circle = {}
     local i = 0
@@ -71,6 +76,8 @@ hook.Add("CalcView", "downed_state_view", function(ply, pos, ang, fov)
 	end
 end)
 
+local downedPlayers = {}
+
 hook.Add("HUDPaint", "downed_bleed_out_timer", function()
 	if IsValid(LocalPlayer():GetNWEntity("downed_ragdoll")) and LocalPlayer():Alive() then
 		local downed_ragdoll = LocalPlayer():GetNWEntity("downed_ragdoll")
@@ -82,4 +89,49 @@ hook.Add("HUDPaint", "downed_bleed_out_timer", function()
 		surface.SetDrawColor(255, 255, 255, 255)
 		draw.JRing(ScrW() / 2, ScrH() / 2, 75, 7, 0, 360 * (1 - fraction))
 	end
+end)
+
+hook.Add("PostDrawOpaqueRenderables", "drawbullshit", function()
+    local lp = LocalPlayer()
+    local eyepos = EyePos()
+    local maxDist = 4000
+    local maxDistSqr = maxDist * maxDist
+
+    for ply, rag in pairs(downedPlayers) do
+        if not IsValid(rag) then continue end
+        if ply == LocalPlayer() then continue end
+        if eyepos:DistToSqr(rag:GetPos()) > maxDistSqr then continue end
+
+        local pos = rag:GetPos()
+        pos.z = pos.z + 40
+
+        local ang = (eyepos - pos):Angle()
+        ang:RotateAroundAxis(ang:Right(), 270)
+        ang:RotateAroundAxis(ang:Up(), 90)
+
+        local distance = eyepos:DistToSqr(pos)
+
+        local startBleedOutTime = rag:GetNWFloat("bleedOutStartTime", 0)
+
+        local elapsed = CurTime() - startBleedOutTime
+        local fraction = math.Clamp(elapsed / 60, 0, 1)
+
+        cam.IgnoreZ(true)
+        cam.Start3D2D(pos, ang, math.max(100, math.sqrt(distance)) / 800)
+            surface.SetMaterial(Material("vgui/white"))
+
+            surface.SetDrawColor(0, 0, 0, 200)
+            surface.DrawPoly(draw.JCircle(0, 0, 20)) 
+
+            surface.SetDrawColor(100, 100, 100, 255)
+            draw.JRing(0, 0, 20, 2, 0, 360)
+            surface.SetDrawColor(255, 255, 255, 255)
+            draw.JRing(0, 0, 20, 2, 0, 360 * (1 - fraction))
+        cam.End3D2D()
+        cam.IgnoreZ(false)
+    end
+end)
+
+net.Receive("downedPlayerLocations", function()
+    downedPlayers = net.ReadTable()
 end)

@@ -131,7 +131,7 @@ hook.Add("Think", "homigrad_style_revives_bleed_out", function()
 		if IsValid(downed_ragdoll) then
 			local elapsedTime = CurTime() - downed_ragdoll:GetNWFloat("bleedOutStartTime") 
 
-			if elapsedTime >= 30 then
+			if elapsedTime >= BLEED_OUT_TIME then
 				ply:SetNWBool("downed", false)
 				ply:Kill()	
 			end
@@ -161,6 +161,7 @@ hook.Add("Think", "homigrad_style_revives_ragdoll_control", function()
 		if ply:KeyDown(IN_ATTACK) and downed_ragdoll.LeftHandPhys then
 			local phys = downed_ragdoll:GetPhysicsObjectNum(downed_ragdoll.LeftHandPhys)
 			if not IsValid(phys) then continue end
+			if IsValid(downed_ragdoll:GetNWEntity("saviour")) then continue end
 
             local targetPos = trace.HitPos
             local currentPos = phys:GetPos()
@@ -183,6 +184,7 @@ hook.Add("Think", "homigrad_style_revives_ragdoll_control", function()
 		if ply:KeyDown(IN_ATTACK2) then
 			local phys = downed_ragdoll:GetPhysicsObjectNum(downed_ragdoll.RightHandPhys)
 			if not IsValid(phys) then continue end
+			if IsValid(downed_ragdoll:GetNWEntity("saviour")) then continue end
 
             local targetPos = trace.HitPos
             local currentPos = phys:GetPos()
@@ -231,7 +233,7 @@ net.Receive("revivingPlayer", function(len, ply)
 	local startReviveTime = downed_ragdoll:GetNWFloat("reviveStartTime", CurTime())
 	local reviveTime = CurTime() - startReviveTime
 
-	if IsValid(downed_ragdoll:GetNWEntity("saviour")) and reviveTime >= 5 then
+	if IsValid(downed_ragdoll:GetNWEntity("saviour")) and reviveTime >= REVIVE_TIME then
 		revivePlayer(downedPlayer)
 	end 
 

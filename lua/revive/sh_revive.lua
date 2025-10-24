@@ -1,1 +1,2 @@
-print("shared rev")
+BLEED_OUT_TIME = 60
+REVIVE_TIME = 5

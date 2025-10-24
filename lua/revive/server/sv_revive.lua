@@ -140,10 +140,22 @@ hook.Add("Think", "homigrad_style_revives_bleed_out", function()
 end)
 
 hook.Add("Think", "homigrad_style_revives_ragdoll_control", function()
-	for _, ply in ipairs(player.GetAll()) do
-		if not ply:GetNWBool("downed") or not IsValid(ply:GetNWEntity("downed_ragdoll")) then continue end
+	for ply, rag in pairs(downedPlayers) do
+		if not IsValid(ply) then
+			if IsValid(rag) then
+				rag:Remove()
+			end
 
-		local downed_ragdoll = ply:GetNWEntity("downed_ragdoll")
+			downedPlayers[ply] = nil
+
+			net.Start("downedPlayerLocations")
+				net.WriteTable(downedPlayers)
+			net.Send(player.GetAll())
+			continue
+		end
+		if not ply:GetNWBool("downed") or not IsValid(ply:GetNWEntity("downed_ragdoll")) then continue end
+		
+		local downed_ragdoll = rag
 
 		local headIndex = downed_ragdoll:LookupAttachment("eyes")
 		local head = downed_ragdoll:GetAttachment(headIndex)

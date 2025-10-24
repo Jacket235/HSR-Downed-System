@@ -251,7 +251,7 @@ net.Receive("revivingPlayer", function(len, ply)
 
 	net.Start("revivingPlayer")
 		net.WriteEntity(downedPlayer)
-	net.Send(ply)
+	net.Send(player.GetAll())
 end)
 
 net.Receive("revivingPlayerStop", function()

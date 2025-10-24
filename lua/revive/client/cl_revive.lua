@@ -196,8 +196,5 @@ end)
 
 net.Receive("revivingPlayer", function()
     local downedPlayer = net.ReadEntity()
-
-    for ply, rag in pairs(downedPlayers) do
-        downedPlayers[ply] = nil
-    end
+    downedPlayers[downedPlayer] = nil
 end)

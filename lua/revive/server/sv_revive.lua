@@ -55,7 +55,7 @@ local function createRagdollController(ply, ragdoll)
 	ply:StripWeapons()
 end
 
-local function storeHandBones(ragdoll, ply)
+local function storeBones(ragdoll, ply)
 	local function findPhysBone(bonename)
 		local boneIndex = ply:LookupBone(bonename)
 		if not boneIndex then return nil end
@@ -113,7 +113,7 @@ hook.Add("PlayerHurt", "homigrad_style_revives_ph", function(ply, atkr, hp, dmg)
 		ply:SetHealth(1)
 
 		local ragdoll = createDownedRagdoll(ply)
-		storeHandBones(ragdoll, ply)
+		storeBones(ragdoll, ply)
 		storeWeapons(ragdoll, ply)
 		local controller = createRagdollController(ply, ragdoll)
 		downedPlayers[ply] = ragdoll

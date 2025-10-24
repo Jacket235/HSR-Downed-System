@@ -1,8 +1,9 @@
 util.AddNetworkString("downedPlayerLocations")
+util.AddNetworkString("revivingPlayer")
+util.AddNetworkString("revivingPlayerStop")
 
 local function createDownedRagdoll(ply)
 	local ragdoll = ents.Create("prop_ragdoll")
-	ragdoll.health = 100
 	ragdoll:SetNWFloat("bleedOutStartTime", CurTime())
 	ragdoll:SetModel(ply:GetModel())
 	ragdoll:SetPos(ply:GetPos())
@@ -68,13 +69,43 @@ local function storeHandBones(ragdoll, ply)
 	ragdoll.RightHandPhys = findPhysBone("ValveBiped.Bip01_R_Hand")
 end
 
-local function creditKill(ply, attacker, inflictor)
-	local dmgInf = DamageInfo() -- Create a server-side damage information class
-	dmgInf:SetDamage( ply:Health() + 1 )
-	dmgInf:SetAttacker( attacker )
-	dmgInf:SetInflictor( inflictor )
-	dmgInf:SetDamageType( DMG_GENERIC )
-	ply:TakeDamageInfo( dmgInf )
+local function storeWeapons(ragdoll, ply)
+	ragdoll.weapons = {}
+
+	for _, weapon in pairs(ply:GetWeapons()) do
+	    local weaponInfo = {
+	        class = weapon:GetClass(),
+	        clip1 = weapon:Clip1(),
+	        clip2 = weapon:Clip2(),
+	        primaryAmmo = ply:GetAmmoCount(weapon:GetPrimaryAmmoType()),
+	        secondaryAmmo = ply:GetAmmoCount(weapon:GetSecondaryAmmoType())
+	    }
+	    table.insert(ragdoll.weapons, weaponInfo)
+	end
+end
+
+local function revivePlayer(ply)
+	local downed_ragdoll = ply:GetNWEntity("downed_ragdoll")
+	local ragdollPos = downed_ragdoll:GetPhysicsObject():GetPos()
+
+	ply:UnSpectate()
+	ply:Spawn()
+	ply:SetHealth(ply:GetMaxHealth() * .5)
+	ply:SetPos(ragdollPos)
+
+	for _, weaponInfo in pairs(downed_ragdoll.weapons or {}) do
+        local weapon = ply:Give(weaponInfo.class)
+        if IsValid(weapon) then
+            weapon:SetClip1(weaponInfo.clip1)
+            weapon:SetClip2(weaponInfo.clip2)
+            ply:SetAmmo(weaponInfo.primaryAmmo, weapon:GetPrimaryAmmoType())
+            ply:SetAmmo(weaponInfo.secondaryAmmo, weapon:GetSecondaryAmmoType())
+        end
+    end
+
+    ply:SetNWBool("downed", false)
+    ply:SetNWEntity("downed_ragdoll", nil)
+    downedPlayers[ply] = nil
 end
 
 downedPlayers = {}
@@ -85,16 +116,16 @@ hook.Add("PlayerHurt", "homigrad_style_revives_ph", function(ply, atkr, hp, dmg)
 			ply:SetHealth(1)
 
 			local ragdoll = createDownedRagdoll(ply)
-			local controller = createRagdollController(ply, ragdoll)
 			storeHandBones(ragdoll, ply)
-			ragdoll.attacker = atkr
-
+			storeWeapons(ragdoll, ply)
+			local controller = createRagdollController(ply, ragdoll)
 			downedPlayers[ply] = ragdoll
 		end
 	-- end
 end)
 
 hook.Add("Think", "homigrad_style_revives_bleed_out", function()
+	PrintTable(downedPlayers)
 	for _, ply in ipairs(player.GetAll()) do
 		if not ply:GetNWBool("downed") then continue end
 
@@ -182,8 +213,42 @@ end)
 
 hook.Add("PlayerUse", "homigrad_style_revives_pu", function(ply, ent)
 	if ent:GetNWEntity("owner") and ent:GetClass() == "prop_ragdoll" then
-		print(ply:Nick() .. " is reviving " .. ent:GetNWEntity("owner"):Nick())
+		local plyDowned = ent:GetNWEntity("owner")
+
+		for player, rag in pairs(downedPlayers) do
+			if player != plyDowned then continue end
+			if IsValid(rag:GetNWEntity("saviour")) then continue end
+
+			rag:SetNWEntity("saviour", ply)
+			rag:SetNWFloat("reviveStartTime", CurTime())
+		end
 	end
+end)
+
+net.Receive("revivingPlayer", function(len, ply)
+	local downedPlayer = net.ReadEntity()
+	local downed_ragdoll = downedPlayer:GetNWEntity("downed_ragdoll")
+
+	if not IsValid(downed_ragdoll) then return end
+
+	local startReviveTime = downed_ragdoll:GetNWFloat("reviveStartTime", CurTime())
+	local reviveTime = CurTime() - startReviveTime
+
+	if IsValid(downed_ragdoll:GetNWEntity("saviour")) and reviveTime >= 5 then
+		revivePlayer(downedPlayer)
+	end 
+
+	net.Start("revivingPlayer")
+		net.WriteEntity(downedPlayer)
+	net.Send(ply)
+end)
+
+net.Receive("revivingPlayerStop", function()
+	local downedPlayerRagdoll = net.ReadEntity()
+	if not IsValid(downedPlayerRagdoll) then return end
+
+	downedPlayerRagdoll:SetNWEntity("saviour", nil)
+	downedPlayerRagdoll:SetNWFloat("reviveStartTime", 0)
 end)
 
 hook.Add("PlayerDeath", "homigrad_style_revives_pd", function(ply, _, atkr)
@@ -200,6 +265,7 @@ hook.Add("PlayerDeath", "homigrad_style_revives_pd", function(ply, _, atkr)
         ply:SetCollisionGroup(COLLISION_GROUP_IN_VEHICLE)
         ply:SpectateEntity(downed_ragdoll)
         downedPlayers[ply] = nil
+
         net.Start("downedPlayerLocations")
 			net.WriteTable(downedPlayers)
 		net.Send(player.GetAll())

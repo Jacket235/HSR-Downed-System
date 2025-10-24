@@ -1,6 +1,4 @@
 util.AddNetworkString("downedPlayerLocations")
-util.AddNetworkString("revivingPlayer")
-util.AddNetworkString("revivingPlayerStop")
 
 local function createDownedRagdoll(ply)
 	local ragdoll = ents.Create("prop_ragdoll")
@@ -123,13 +121,13 @@ hook.Add("PlayerHurt", "homigrad_style_revives_ph", function(ply, atkr, hp, dmg)
 end)
 
 hook.Add("Think", "homigrad_style_revives_bleed_out", function()
-	for _, ply in ipairs(player.GetAll()) do
+	if table.IsEmpty(downedPlayers) then return end
+
+	for ply, rag in pairs(downedPlayers) do
 		if not ply:GetNWBool("downed") then continue end
 
-		local downed_ragdoll = ply:GetNWEntity("downed_ragdoll")
-
-		if IsValid(downed_ragdoll) then
-			local elapsedTime = CurTime() - downed_ragdoll:GetNWFloat("bleedOutStartTime") 
+		if IsValid(rag) then
+			local elapsedTime = CurTime() - rag:GetNWFloat("bleedOutStartTime") 
 
 			if elapsedTime >= BLEED_OUT_TIME then
 				ply:SetNWBool("downed", false)
@@ -140,6 +138,8 @@ hook.Add("Think", "homigrad_style_revives_bleed_out", function()
 end)
 
 hook.Add("Think", "homigrad_style_revives_ragdoll_control", function()
+	if table.IsEmpty(downedPlayers) then return end
+
 	for ply, rag in pairs(downedPlayers) do
 		if not IsValid(ply) then
 			if IsValid(rag) then
@@ -173,7 +173,6 @@ hook.Add("Think", "homigrad_style_revives_ragdoll_control", function()
 		if ply:KeyDown(IN_ATTACK) and downed_ragdoll.LeftHandPhys then
 			local phys = downed_ragdoll:GetPhysicsObjectNum(downed_ragdoll.LeftHandPhys)
 			if not IsValid(phys) then continue end
-			if IsValid(downed_ragdoll:GetNWEntity("saviour")) then continue end
 
             local targetPos = trace.HitPos
             local currentPos = phys:GetPos()
@@ -196,7 +195,6 @@ hook.Add("Think", "homigrad_style_revives_ragdoll_control", function()
 		if ply:KeyDown(IN_ATTACK2) then
 			local phys = downed_ragdoll:GetPhysicsObjectNum(downed_ragdoll.RightHandPhys)
 			if not IsValid(phys) then continue end
-			if IsValid(downed_ragdoll:GetNWEntity("saviour")) then continue end
 
             local targetPos = trace.HitPos
             local currentPos = phys:GetPos()
@@ -215,51 +213,54 @@ hook.Add("Think", "homigrad_style_revives_ragdoll_control", function()
 
             phys:ApplyForceCenter(force)
 		end
-
-		net.Start("downedPlayerLocations")
-			net.WriteTable(downedPlayers)
-		net.Send(player.GetAll())
 	end
+
+	net.Start("downedPlayerLocations")
+		net.WriteTable(downedPlayers)
+	net.Send(player.GetAll())
 end)
 
-hook.Add("PlayerUse", "homigrad_style_revives_pu", function(ply, ent)
-	if ent:GetNWEntity("owner") and ent:GetClass() == "prop_ragdoll" then
-		local plyDowned = ent:GetNWEntity("owner")
+hook.Add("Think", "homigrad_style_revives_reviving", function()
+	if table.IsEmpty(downedPlayers) then return end
+ 
+	for ply, rag in pairs(downedPlayers) do
+		local savior = rag:GetNWEntity("savior")
 
-		for player, rag in pairs(downedPlayers) do
-			if player != plyDowned then continue end
-			if IsValid(rag:GetNWEntity("saviour")) then continue end
+		if IsValid(savior) then
+			if not savior:KeyDown(IN_USE) then
+				rag:SetNWEntity("savior", NULL)
+				rag:SetNWFloat("reviveStartTime", CurTime())
+			end
 
-			rag:SetNWEntity("saviour", ply)
-			rag:SetNWFloat("reviveStartTime", CurTime())
+			local elapsedTime = CurTime() - rag:GetNWFloat("reviveStartTime") 
+
+			if elapsedTime >= REVIVE_TIME then 
+				revivePlayer(ply)
+
+				downedPlayers[ply] = nil
+
+				net.Start("downedPlayerLocations")
+					net.WriteTable(downedPlayers)
+				net.Send(player.GetAll())
+			end
 		end
 	end
 end)
 
-net.Receive("revivingPlayer", function(len, ply)
-	local downedPlayer = net.ReadEntity()
-	local downed_ragdoll = downedPlayer:GetNWEntity("downed_ragdoll")
+hook.Add("PlayerUse", "homigrad_style_revives_pu", function(user, ent)
+	if ent:GetNWEntity("owner") and ent:GetClass() == "prop_ragdoll" then
+		local plyDowned = ent:GetNWEntity("owner")
 
-	if not IsValid(downed_ragdoll) then return end
+		for ply, rag in pairs(downedPlayers) do
+			if ent == rag then
+				if IsValid(rag:GetNWEntity("savior")) then continue end
+				if ply != plyDowned then continue end
 
-	local startReviveTime = downed_ragdoll:GetNWFloat("reviveStartTime", CurTime())
-	local reviveTime = CurTime() - startReviveTime
-
-	if IsValid(downed_ragdoll:GetNWEntity("saviour")) and reviveTime >= REVIVE_TIME then
-		revivePlayer(downedPlayer)
-	end 
-
-	net.Start("revivingPlayer")
-		net.WriteEntity(downedPlayer)
-	net.Send(player.GetAll())
-end)
-
-net.Receive("revivingPlayerStop", function()
-	local downedPlayerRagdoll = net.ReadEntity()
-	if not IsValid(downedPlayerRagdoll) then return end
-
-	downedPlayerRagdoll:SetNWEntity("saviour", nil)
-	downedPlayerRagdoll:SetNWFloat("reviveStartTime", 0)
+				rag:SetNWEntity("savior", user)
+				rag:SetNWFloat("reviveStartTime", CurTime())
+			end
+		end
+	end
 end)
 
 hook.Add("PlayerDeath", "homigrad_style_revives_pd", function(ply, _, atkr)

@@ -95,6 +95,10 @@ hook.Add("HUDPaintBackground", "downed_bleed_out_timer", function()
 		local elapsedBleedOut = CurTime() - startBleedOutTime
     	local fractionBleedOut = 1 - math.Clamp(elapsedBleedOut / BLEED_OUT_TIME, 0, 1)
 
+        local startReviveTime = downed_ragdoll:GetNWFloat("reviveStartTime", 0)
+        local elapsedRevive = CurTime() - startReviveTime
+        local fractionRevive = math.Clamp(elapsedRevive / REVIVE_TIME, 0, 1)
+
         // Background box
         surface.SetDrawColor(0, 0, 0, 200)
         surface.DrawRect(boxX, boxY, boxW, boxH)
@@ -114,9 +118,16 @@ hook.Add("HUDPaintBackground", "downed_bleed_out_timer", function()
         local g = minGB + (255 - minGB) * pulse
         local b = minGB + (255 - minGB) * pulse
 
-        local ringColor = Color(255, g, b, 255)
-        surface.SetDrawColor(ringColor)
-		draw.JRing(boxX + boxW - (ringRadius) - 5, boxY + (boxH / 2), ringRadius, 5, 0, 360 * fractionBleedOut)
+        local ringBleedOutColor = Color(255, g, b, 255)
+        local ringReviveColor = Color(123, 183, 232, 255)
+
+        if IsValid(downed_ragdoll:GetNWEntity("savior")) then
+            surface.SetDrawColor(ringReviveColor)
+            draw.JRing(boxX + boxW - (ringRadius) - 5, boxY + (boxH / 2), ringRadius, 5, 0, 360 * fractionRevive)
+        else
+            surface.SetDrawColor(ringBleedOutColor)
+            draw.JRing(boxX + boxW - (ringRadius) - 5, boxY + (boxH / 2), ringRadius, 5, 0, 360 * fractionBleedOut)
+        end
 	end
 end)
 
@@ -146,31 +157,15 @@ hook.Add("PostDrawOpaqueRenderables", "draw_downed_players_icons", function()
         local elapsedBleedOut = CurTime() - startBleedOutTime
         local fractionBleedOut = 1 - math.Clamp(elapsedBleedOut / BLEED_OUT_TIME, 0, 1)
 
-        local startReviveTime = 0
-        local elapsedRevive = 0
-        local fractionRevive = 0
-
-        if rag:GetNWEntity("saviour") == LocalPlayer() and LocalPlayer():KeyDown(IN_USE) then
-            startReviveTime = rag:GetNWFloat("reviveStartTime", CurTime())
-            elapsedRevive = CurTime() - startReviveTime
-            fractionRevive = math.Clamp(elapsedRevive / REVIVE_TIME, 0, 1)
-
-            net.Start("revivingPlayer")
-                net.WriteEntity(ply)
-            net.SendToServer()
-        elseif rag:GetNWEntity("saviour") == LocalPlayer() and not LocalPlayer():KeyDown(IN_USE) then 
-            net.Start("revivingPlayerStop")
-                net.WriteEntity(rag)
-            net.SendToServer()
-
-            downedPlayers[ply]:SetNWEntity("saviour", nil)
-        end
+        local startReviveTime = rag:GetNWFloat("reviveStartTime", 0)
+        local elapsedRevive = CurTime() - startReviveTime
+        local fractionRevive = math.Clamp(elapsedRevive / REVIVE_TIME, 0, 1)
         
         cam.IgnoreZ(true)
         cam.Start3D2D(pos, ang, math.max(240, math.sqrt(distance)) / 2400)
             surface.SetMaterial(Material("vgui/white"))
 
-            if rag:GetNWEntity("saviour") == LocalPlayer() then
+            if LocalPlayer() == rag:GetNWEntity("savior") then
                 surface.SetDrawColor(11, 16, 183, 255)
                 draw.JRing(0, 0, 75, 10, 0, 360 * fractionRevive)
             end
@@ -192,9 +187,4 @@ end)
 
 net.Receive("downedPlayerLocations", function()
     downedPlayers = net.ReadTable()
-end)
-
-net.Receive("revivingPlayer", function()
-    local downedPlayer = net.ReadEntity()
-    downedPlayers[downedPlayer] = nil
 end)

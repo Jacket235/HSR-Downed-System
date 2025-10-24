@@ -111,21 +111,18 @@ end
 downedPlayers = {}
 
 hook.Add("PlayerHurt", "homigrad_style_revives_ph", function(ply, atkr, hp, dmg)
-	-- if ply:IsBot() then
-		if not ply:GetNWBool("downed") and hp <= 0  then 
-			ply:SetHealth(1)
+	if not ply:GetNWBool("downed") and hp <= 0  then 
+		ply:SetHealth(1)
 
-			local ragdoll = createDownedRagdoll(ply)
-			storeHandBones(ragdoll, ply)
-			storeWeapons(ragdoll, ply)
-			local controller = createRagdollController(ply, ragdoll)
-			downedPlayers[ply] = ragdoll
-		end
-	-- end
+		local ragdoll = createDownedRagdoll(ply)
+		storeHandBones(ragdoll, ply)
+		storeWeapons(ragdoll, ply)
+		local controller = createRagdollController(ply, ragdoll)
+		downedPlayers[ply] = ragdoll
+	end
 end)
 
 hook.Add("Think", "homigrad_style_revives_bleed_out", function()
-	PrintTable(downedPlayers)
 	for _, ply in ipairs(player.GetAll()) do
 		if not ply:GetNWBool("downed") then continue end
 

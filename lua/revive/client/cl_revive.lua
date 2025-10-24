@@ -1,5 +1,5 @@
 surface.CreateFont("plyNickFont", {
-    font = "Arial",
+    font = "D-DIN",
     size = 72
 })
 
@@ -93,7 +93,6 @@ hook.Add("HUDPaint", "downed_bleed_out_timer", function()
 end)
 
 hook.Add("PostDrawOpaqueRenderables", "draw_downed_players_icons", function()
-    PrintTable(downedPlayers)
     if table.IsEmpty(downedPlayers) then return end
 
     local lp = LocalPlayer()
@@ -145,7 +144,7 @@ hook.Add("PostDrawOpaqueRenderables", "draw_downed_players_icons", function()
 
             if rag:GetNWEntity("saviour") == LocalPlayer() then
                 surface.SetDrawColor(11, 16, 183, 255)
-                draw.JRing(0, 0, 80, 10, 0, 360 * fractionRevive)
+                draw.JRing(0, 0, 75, 10, 0, 360 * fractionRevive)
             end
 
             surface.SetDrawColor(57, 59, 61, 255)
@@ -155,7 +154,9 @@ hook.Add("PostDrawOpaqueRenderables", "draw_downed_players_icons", function()
 
             surface.SetDrawColor(123, 183, 232, 255)
             surface.SetMaterial(health_icon) 
-            surface.DrawTexturedRect(-32, -32, 64, 64) 
+            surface.DrawTexturedRect(-32, -32, 64, 64)
+
+            draw.SimpleText(ply:Nick(), "plyNickFont", 0, -110, Color(255, 255, 255, 255), TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER) 
         cam.End3D2D()
         cam.IgnoreZ(false)
     end

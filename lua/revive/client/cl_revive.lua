@@ -64,6 +64,12 @@ function draw.JRing(PositionX, PositionY, Radius, Thickness, StartAng, EndAng)
     render.SetStencilEnable(false)
 end
 
+local EntityMeta = FindMetaTable("Entity")
+
+function EntityMeta:GetPlayerColor()
+    return self:GetNWVector("rag_ply_color") or Vector()
+end
+
 hook.Add("OnScreenSizeChanged", "abcdefghijklmnopqrstuvwxyz", function()
     createFont()
 end)

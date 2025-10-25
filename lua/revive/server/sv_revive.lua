@@ -8,10 +8,10 @@ local function createDownedRagdoll(ply)
 	ragdoll:SetModel(ply:GetModel())
 	ragdoll:SetPos(ply:GetPos())
 	ragdoll:SetAngles(ply:GetAngles())
+	ragdoll:SetNWVector("rag_ply_color", ply:GetPlayerColor())
 	ragdoll:SetCollisionGroup(COLLISION_GROUP_WEAPON)
 	ragdoll:Spawn()
 	ragdoll:Activate()
-
     local vel = ply:GetVelocity()/1 + (force or Vector(0,0,0))
 	for i = 0, ragdoll:GetPhysicsObjectCount() - 1 do
 		local physobj = ragdoll:GetPhysicsObjectNum( i )

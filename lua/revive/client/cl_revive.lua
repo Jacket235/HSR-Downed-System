@@ -169,8 +169,15 @@ hook.Add("PostDrawOpaqueRenderables", "draw_downed_players_icons", function()
 
         local distance = eyepos:DistToSqr(pos)
 
+        local pausedElapsed = rag:GetNWFloat("bleedOutPausedElapsed", -1)
+
         local startBleedOutTime = rag:GetNWFloat("bleedOutStartTime", 0)
-        local elapsedBleedOut = CurTime() - startBleedOutTime
+        local elapsedBleedOut = 0
+        if pausedElapsed >= 0 then
+            elapsedBleedOut = pausedElapsed
+        else
+            elapsedBleedOut = CurTime() - startBleedOutTime
+        end    
         local fractionBleedOut = 1 - math.Clamp(elapsedBleedOut / BLEED_OUT_TIME, 0, 1)
 
         local startReviveTime = rag:GetNWFloat("reviveStartTime", 0)

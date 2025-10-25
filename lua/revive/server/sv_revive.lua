@@ -132,15 +132,30 @@ hook.Add("Think", "homigrad_style_revives_bleed_out", function()
 	if table.IsEmpty(downedPlayers) then return end
 
 	for ply, rag in pairs(downedPlayers) do
-		if not ply:GetNWBool("downed") then continue end
+		if not ply:GetNWBool("downed") or not IsValid(rag) then continue end
 
-		if IsValid(rag) then
-			local elapsedTime = CurTime() - rag:GetNWFloat("bleedOutStartTime") 
+		local savior = rag:GetNWEntity("savior")
+		local startBleedOutTime = rag:GetNWFloat("bleedOutStartTime")
 
-			if elapsedTime >= BLEED_OUT_TIME then
-				ply:SetNWBool("downed", false)
-				ply:Kill()	
-			end
+		if IsValid(savior) and not rag.pauseBleedOutTime then
+			rag.pauseBleedOutTime = CurTime()
+			rag:SetNWFloat("bleedOutPausedElapsed", CurTime() - startBleedOutTime)
+		end
+		if not IsValid(savior) and rag.pauseBleedOutTime then
+			local pauseDuration = CurTime() - rag.pauseBleedOutTime
+			rag.pauseBleedOutTime = nil
+			rag:SetNWFloat("bleedOutStartTime", startBleedOutTime + pauseDuration)
+			rag:SetNWFloat("bleedOutPausedElapsed", -1)
+			startBleedOutTime = rag:GetNWFloat("bleedOutStartTime")
+		end
+
+		local elapsedTime = CurTime() - startBleedOutTime
+		
+		if rag.pauseBleedOutTime then continue end
+
+		if elapsedTime >= BLEED_OUT_TIME then
+			ply:SetNWBool("downed", false)
+			ply:Kill()	
 		end
 	end
 end)

@@ -1,11 +1,17 @@
-surface.CreateFont("plyNickFont", {
-    font = "D-DIN",
-    size = 72
-})
-surface.CreateFont("textFont", {
-    font = "D-DIN",
-    size = 32
-})
+include("revive/sh_revive.lua")
+
+function createFont()
+    surface.CreateFont("plyNickFont", {
+        font = "D-DIN",
+        size = 72 * (ScrW() / 1600) 
+    })
+    surface.CreateFont("textFont", {
+        font = "D-DIN",
+        size = 32 * (ScrW() / 1600)
+    })
+end
+
+createFont()
 
 function draw.JCircle(PositionX, PositionY, Radius)
     local circle = {}
@@ -58,6 +64,10 @@ function draw.JRing(PositionX, PositionY, Radius, Thickness, StartAng, EndAng)
     render.SetStencilEnable(false)
 end
 
+hook.Add("OnScreenSizeChanged", "abcdefghijklmnopqrstuvwxyz", function()
+    createFont()
+end)
+
 hook.Add("CalcView", "downed_state_view", function(ply, pos, ang, fov)
 	if IsValid(ply:GetNWEntity("downed_ragdoll")) then
         local downed_ragdoll = ply:GetNWEntity("downed_ragdoll")
@@ -84,51 +94,57 @@ local downedPlayers = {}
 local health_icon = Material("homigrad_style_downs/small-health.png")
 
 hook.Add("HUDPaintBackground", "downed_bleed_out_timer", function()
-	if IsValid(LocalPlayer():GetNWEntity("downed_ragdoll")) and LocalPlayer():Alive() then
-        local scale = ScrW() / 1600
-        local boxW, boxH = 305 * scale, 50 * scale
-        local boxX, boxY = ScrW() / 2 - (boxW / 2), ScrH() / 2 - (boxH / 2) + (250 * scale)
-        local ringRadius = 20 * scale
+    local ply = LocalPlayer()
+    local rag = ply:GetNWEntity("downed_ragdoll")
 
-		local downed_ragdoll = LocalPlayer():GetNWEntity("downed_ragdoll")
-		local startBleedOutTime = downed_ragdoll:GetNWFloat("bleedOutStartTime", 0)
-		local elapsedBleedOut = CurTime() - startBleedOutTime
-    	local fractionBleedOut = 1 - math.Clamp(elapsedBleedOut / BLEED_OUT_TIME, 0, 1)
+	if not IsValid(ply) or not IsValid(rag) or not ply:Alive() then return end
 
-        local startReviveTime = downed_ragdoll:GetNWFloat("reviveStartTime", 0)
-        local elapsedRevive = CurTime() - startReviveTime
-        local fractionRevive = math.Clamp(elapsedRevive / REVIVE_TIME, 0, 1)
+    local scale = ScrW() / 1600
+    local savior = rag:GetNWEntity("savior")
+    local isBeingRevived = IsValid(savior)
 
-        // Background box
-        surface.SetDrawColor(0, 0, 0, 200)
-        surface.DrawRect(boxX, boxY, boxW, boxH)
+    // Math
+    -- Bleed out
+    local startBleedOutTime = rag:GetNWFloat("bleedOutStartTime", 0)
+    local elapsedBleedOut = CurTime() - startBleedOutTime
+    local fractionBleedOut = 1 - math.Clamp(elapsedBleedOut / BLEED_OUT_TIME, 0, 1)
 
-        // Text 
-        surface.SetFont("textFont")
-        local downedMessage = "You are bleeding out"
-        local textW, textH = surface.GetTextSize(downedMessage)
-        surface.SetDrawColor(255, 255, 255, 255)
-        draw.SimpleText(downedMessage, "textFont", boxX + (textW / 2) + 5, boxY + (boxH / 2), Color(255, 255, 255, 255), TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
+    -- Revive
+    local startReviveTime = rag:GetNWFloat("reviveStartTime", 0)
+    local elapsedRevive = CurTime() - startReviveTime
+    local fractionRevive = math.Clamp(elapsedRevive / REVIVE_TIME, 0, 1)
 
-        // Timer ring
-        local pulseSpeed = 4
-        local pulse = (math.sin(CurTime() * pulseSpeed) + 1) / 2
+    // Text properties
+    surface.SetFont("textFont")
+    local downedMessage = isBeingRevived and "You are being helped up" or "You are bleeding out"
+    local textW, textH = surface.GetTextSize(downedMessage)
 
-        local minGB = 100
-        local g = minGB + (255 - minGB) * pulse
-        local b = minGB + (255 - minGB) * pulse
+    // Ring properties
+    local pulseSpeed = 4
+    local pulse = (math.sin(CurTime() * pulseSpeed) + 1) / 2
+    local minGB = 100
+    local g = minGB + (255 - minGB) * pulse
+    local b = minGB + (255 - minGB) * pulse
+    local ringRadius = 20 * scale
+    local ringThickSkinJacket = 5 * scale
+    local ringColor = isBeingRevived and Color(123, 183, 232, 255) or Color(255, g, b, 255)
+    local ringFraction = isBeingRevived and fractionRevive or fractionBleedOut
 
-        local ringBleedOutColor = Color(255, g, b, 255)
-        local ringReviveColor = Color(123, 183, 232, 255)
+    // Background box properties
+    local boxW, boxH = ((textW + 10) + (ringRadius * 2 + 10)) * scale, 50 * scale
+    local boxX, boxY = ScrW() / 2 - (boxW / 2), ScrH() / 2 - (boxH / 2) + (250 * scale)
 
-        if IsValid(downed_ragdoll:GetNWEntity("savior")) then
-            surface.SetDrawColor(ringReviveColor)
-            draw.JRing(boxX + boxW - (ringRadius) - 5, boxY + (boxH / 2), ringRadius, 5, 0, 360 * fractionRevive)
-        else
-            surface.SetDrawColor(ringBleedOutColor)
-            draw.JRing(boxX + boxW - (ringRadius) - 5, boxY + (boxH / 2), ringRadius, 5, 0, 360 * fractionBleedOut)
-        end
-	end
+    // Background box
+    surface.SetDrawColor(0, 0, 0, 200)
+    surface.DrawRect(boxX, boxY, boxW, boxH)
+
+    // Text 
+    surface.SetDrawColor(255, 255, 255, 255)
+    draw.SimpleText(downedMessage, "textFont", boxX + (textW / 2) + 5, boxY + (boxH / 2), Color(255, 255, 255, 255), TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
+
+    // Timer ring
+    surface.SetDrawColor(ringColor)
+    draw.JRing(boxX + boxW - (ringRadius) - 5, boxY + (boxH / 2), ringRadius, ringThickSkinJacket, 0, 360 * ringFraction)
 end)
 
 hook.Add("PostDrawOpaqueRenderables", "draw_downed_players_icons", function()

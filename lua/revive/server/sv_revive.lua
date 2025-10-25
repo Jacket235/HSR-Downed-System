@@ -1,5 +1,7 @@
 util.AddNetworkString("downedPlayerLocations")
 
+include("revive/sh_revive.lua")
+
 local function createDownedRagdoll(ply)
 	local ragdoll = ents.Create("prop_ragdoll")
 	ragdoll:SetNWFloat("bleedOutStartTime", CurTime())
@@ -89,6 +91,8 @@ local function revivePlayer(ply)
 	ply:UnSpectate()
 	ply:Spawn()
 	ply:SetHealth(ply:GetMaxHealth() * .5)
+	ply:StripWeapons()
+	ply:StripAmmo()
 	ply:SetPos(ragdollPos)
 
 	for _, weaponInfo in pairs(downed_ragdoll.weapons or {}) do
@@ -96,8 +100,12 @@ local function revivePlayer(ply)
         if IsValid(weapon) then
             weapon:SetClip1(weaponInfo.clip1)
             weapon:SetClip2(weaponInfo.clip2)
-            ply:SetAmmo(weaponInfo.primaryAmmo, weapon:GetPrimaryAmmoType())
-            ply:SetAmmo(weaponInfo.secondaryAmmo, weapon:GetSecondaryAmmoType())
+
+            local primaryType = weapon:GetPrimaryAmmoType()
+        	local secondaryType = weapon:GetSecondaryAmmoType()
+
+            ply:SetAmmo(weaponInfo.primaryAmmo, primaryType)
+            ply:SetAmmo(weaponInfo.secondaryAmmo, secondaryType)
         end
     end
 

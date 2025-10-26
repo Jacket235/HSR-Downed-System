@@ -14,7 +14,7 @@ hook.Add("PlayerHurt", "HSR_ph", function(ply, atkr, hp, dmg)
 		else
 			ragdoll.attacker = atkr
 		end
-		if IsValid(atkr:GetActiveWeapon()) then
+		if IsValid(ragdoll.attacker) and IsValid(atkr:GetActiveWeapon()) then
 			ragdoll.attackerWeapon = atkr:GetActiveWeapon()
 		end
 		HSR.storeBones(ragdoll, ply)
@@ -30,6 +30,7 @@ hook.Add("OnEntityCreated", "HSR_target_bullseye", function(ent)
 	if ent:GetClass() ~= "npc_bullseye" then return end
 	timer.Simple(0, function()
 		if not IsValid(ent:GetParent():GetNWEntity("owner")) then return end
+		if not IsValid(ent) then return end
 
 		for _, npc in pairs(ents.FindByClass("npc_*")) do
 	        npc:AddEntityRelationship(ent, D_HT, 0)

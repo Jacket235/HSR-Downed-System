@@ -74,6 +74,7 @@ function HSR.createDownedRagdoll(ply)
 	ply:SetNoDraw(true)
 	ply:SetNoTarget(true)
 	ply:SetMoveType(MOVETYPE_NONE)
+	ply:SetLocalVelocity(Vector(0, 0, 0))
 
 	return ragdoll
 end

@@ -39,7 +39,7 @@ hook.Add("Think", "homigrad_style_revives_bleed_out", function()
 		
 		if rag.pauseBleedOutTime then continue end
 
-		if elapsedTime >= BLEED_OUT_TIME then
+		if elapsedTime >= HSR.RAGDOLL_BLEED_OUT_TIME then
 			ply:SetNWBool("downed", false)
 			ply:Kill()	
 		end
@@ -143,7 +143,7 @@ hook.Add("Think", "homigrad_style_revives_reviving", function()
 
 			local elapsedTime = CurTime() - rag:GetNWFloat("reviveStartTime") 
 
-			if elapsedTime >= REVIVE_TIME then 
+			if elapsedTime >= HSR.RAGDOLL_REVIVE_TIME then 
 				HSR.revivePlayer(ply)
 
 				HSR.downedPlayers[ply] = nil

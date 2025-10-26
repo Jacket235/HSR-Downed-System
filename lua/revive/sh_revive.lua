@@ -1,8 +1,8 @@
 HSR = {}
 HSR.downedPlayers = {}
 
-BLEED_OUT_TIME = 5
-REVIVE_TIME = 5
+HSR.RAGDOLL_BLEED_OUT_TIME = 30
+HSR.RAGDOLL_REVIVE_TIME = 5
 
 HSR.boneToHitGroup = { 
     ["ValveBiped.Bip01_Head1"] = 1,

@@ -113,12 +113,12 @@ hook.Add("HUDPaintBackground", "downed_bleed_out_timer", function()
     -- Bleed out
     local startBleedOutTime = rag:GetNWFloat("bleedOutStartTime", 0)
     local elapsedBleedOut = CurTime() - startBleedOutTime
-    local fractionBleedOut = 1 - math.Clamp(elapsedBleedOut / BLEED_OUT_TIME, 0, 1)
+    local fractionBleedOut = 1 - math.Clamp(elapsedBleedOut / HSR.RAGDOLL_BLEED_OUT_TIME, 0, 1)
 
     -- Revive
     local startReviveTime = rag:GetNWFloat("reviveStartTime", 0)
     local elapsedRevive = CurTime() - startReviveTime
-    local fractionRevive = math.Clamp(elapsedRevive / REVIVE_TIME, 0, 1)
+    local fractionRevive = math.Clamp(elapsedRevive / HSR.RAGDOLL_REVIVE_TIME, 0, 1)
 
     // Text properties
     surface.SetFont("textFont")
@@ -137,7 +137,7 @@ hook.Add("HUDPaintBackground", "downed_bleed_out_timer", function()
     local ringFraction = isBeingRevived and fractionRevive or fractionBleedOut
 
     // Background box properties
-    local boxW, boxH = ((textW + 10) + (ringRadius * 2 + 10)) * scale, 50 * scale
+    local boxW, boxH = textW + (10 + (ringRadius * 2 + 10) * scale), 50 * scale
     local boxX, boxY = ScrW() / 2 - (boxW / 2), ScrH() / 2 - (boxH / 2) + (250 * scale)
 
     // Background box
@@ -184,11 +184,11 @@ hook.Add("PostDrawOpaqueRenderables", "draw_downed_players_icons", function()
         else
             elapsedBleedOut = CurTime() - startBleedOutTime
         end    
-        local fractionBleedOut = 1 - math.Clamp(elapsedBleedOut / BLEED_OUT_TIME, 0, 1)
+        local fractionBleedOut = 1 - math.Clamp(elapsedBleedOut / HSR.RAGDOLL_BLEED_OUT_TIME, 0, 1)
 
         local startReviveTime = rag:GetNWFloat("reviveStartTime", 0)
         local elapsedRevive = CurTime() - startReviveTime
-        local fractionRevive = math.Clamp(elapsedRevive / REVIVE_TIME, 0, 1)
+        local fractionRevive = math.Clamp(elapsedRevive / HSR.RAGDOLL_REVIVE_TIME, 0, 1)
         
         cam.IgnoreZ(true)
         cam.Start3D2D(pos, ang, math.max(240, math.sqrt(distance)) / 2400)

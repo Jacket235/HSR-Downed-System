@@ -2,7 +2,7 @@ HSR = {}
 HSR.downedPlayers = {}
 
 HSR.RAGDOLL_BLEED_OUT_TIME = 30
-HSR.RAGDOLL_GIVE_UP_TIME = 2
+HSR.RAGDOLL_GIVE_UP_TIME = 1
 HSR.RAGDOLL_REVIVE_TIME = 5
 HSR.GIVE_UP_KEY = IN_JUMP -- If you change this, then you will have to change the text on line 160 in cl_revive.lua
 
@@ -69,23 +69,22 @@ function HSR.createDownedRagdoll(ply)
 
 	ply:SetNWBool("downed", true)
 	ply:SetNWEntity("downed_ragdoll", ragdoll)
-	ply:Freeze(false)
 	ply:SetNotSolid(true)
 	ply:DrawViewModel(false)
 	ply:SetNoDraw(true)
+	ply:SetNoTarget(true)
 	ply:SetMoveType(MOVETYPE_NONE)
 
 	return ragdoll
 end
 
-function HSR.createRagdollController(ply, ragdoll)
+function HSR.createRagdollBullseye(ply, ragdoll)
 	ragdoll.bullseye = ents.Create("npc_bullseye")
 	ragdoll:SetNWEntity("owner", ply)
 
 	local bullseye = ragdoll.bullseye
-	local ragdollHead = ragdoll:GetPhysicsObjectNum(10)
-	bullseye:SetPos(ragdollHead:GetPos())
-	bullseye:SetParent(ragdoll, ragdoll:LookupAttachment("eyes"))
+	bullseye:SetPos(ragdoll:GetPos() + Vector(0, 0, 8))
+	bullseye:SetParent(ragdoll)
 	bullseye:SetHealth(1000)
 	bullseye:Spawn()
 	bullseye:Activate()
@@ -126,7 +125,7 @@ function HSR.revivePlayer(ply)
 
 	ply:UnSpectate()
 	ply:Spawn()
-	ply:SetHealth(ply:GetMaxHealth() * .5)
+	ply:SetHealth(ply:GetMaxHealth() * .3)
 	ply:StripWeapons()
 	ply:StripAmmo()
 	ply:SetPos(ragdollPos)

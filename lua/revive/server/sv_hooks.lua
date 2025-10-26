@@ -21,9 +21,22 @@ hook.Add("PlayerHurt", "HSR_ph", function(ply, atkr, hp, dmg)
 		HSR.storeWeapons(ragdoll, ply)
 
 
-		local controller = HSR.createRagdollController(ply, ragdoll)
+		local controller = HSR.createRagdollBullseye(ply, ragdoll)
 		HSR.downedPlayers[ply] = ragdoll
 	end
+end)
+
+hook.Add("OnEntityCreated", "HSR_target_bullseye", function(ent)
+	if ent:GetClass() ~= "npc_bullseye" then return end
+	timer.Simple(0, function()
+		if not IsValid(ent:GetParent():GetNWEntity("owner")) then return end
+
+		for _, npc in pairs(ents.FindByClass("npc_*")) do
+	        npc:AddEntityRelationship(ent, D_HT, 0)
+	        npc:SetNPCState(NPC_STATE_COMBAT)
+	        npc:SetEnemy(ent)
+	    end
+	end)
 end)
 
 hook.Add("Think", "HSR_bleed_out", function()
@@ -246,7 +259,6 @@ hook.Add("PlayerSpawn", "HSR_ps", function(ply, _)
 	if IsValid(downed_ragdoll) and IsValid(downed_ragdoll.bullseye) then
 		ply:UnSpectate()
 		downed_ragdoll:Remove()
-		downed_ragdoll.bullseye:Remove()
 		ply:SetNWEntity("downed_ragdoll", nil)
 	end
 end)

@@ -157,31 +157,11 @@ hook.Add("HUDPaintBackground", "downed_bleed_out_hud", function()
     // Text 
     surface.SetDrawColor(255, 255, 255, 255)
     draw.SimpleText(downedMessage, "textFont", boxX + (textW / 2) + 5, boxY + (boxH / 2), Color(255, 255, 255, 255), TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
-    draw.SimpleText("Hold 'Space' to give up", "textSmallFont", boxX + (boxW / 2), boxY - (boxH / 2) + 100, Color(255, 255, 255, 255), TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
+    draw.SimpleTextOutlined("Hold 'Space' to give up", "textSmallFont", boxX + (boxW / 2), boxY - (boxH / 2) + 85, Color(255, 255, 255, 255), TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER, 1, Color(0, 0, 0, 255))
 
     // Timer ring
     surface.SetDrawColor(ringColor)
     draw.JRing(boxX + boxW - (ringRadius) - 5, boxY + (boxH / 2), ringRadius, ringThickSkinJacket, 0, 360 * ringFraction)
-end)
-
-hook.Add("HUDPaint", "downed_health_hud", function()
-    local ply = LocalPlayer()
-    if not IsValid(ply) or not IsValid(ply:GetNWEntity("downed_ragdoll")) or not ply:Alive() then return end
-
-    local hp = ply:Health()
-    local maxHp = ply:GetMaxHealth()
-    local scale = ScrW() / 1600
-
-    local boxW, boxH = 200 * scale, 10 * scale
-    local boxX, boxY = ScrW() / 2 - (boxW / 2), ScrH() / 2 - (boxH / 2) + (285 * scale)
-
-    // bg box
-    surface.SetDrawColor(0, 0, 0, 200)
-    surface.DrawRect(boxX, boxY, boxW, boxH)
-
-    // hp
-    surface.SetDrawColor(255, 255, 255, 255)
-    surface.DrawRect(boxX + 2, boxY + 2, (boxW - 4) * (hp / maxHp), boxH - 4)
 end)
 
 hook.Add("PostDrawOpaqueRenderables", "draw_downed_players_icons", function()

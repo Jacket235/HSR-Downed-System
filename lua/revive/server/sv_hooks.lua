@@ -38,10 +38,10 @@ hook.Add("Think", "homigrad_style_revives_bleed_out", function()
 		end
 
 		// This checks if the player is giving up
-		if ply:KeyDown(IN_USE) and not (startGiveUpTime >= 0) then
+		if ply:KeyDown(HSR.GIVE_UP_KEY) and not (startGiveUpTime >= 0) then
 			rag:SetNWFloat("giveUpStartTime", CurTime())
 		end
-		if not ply:KeyDown(IN_USE) and (startGiveUpTime >= 0) then
+		if not ply:KeyDown(HSR.GIVE_UP_KEY) and (startGiveUpTime >= 0) then
 			rag:SetNWFloat("giveUpStartTime", -1)
 		end
 

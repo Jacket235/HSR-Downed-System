@@ -9,6 +9,10 @@ function createFont()
         font = "D-DIN",
         size = 32 * (ScrW() / 1600)
     })
+    surface.CreateFont("textSmallFont", {
+        font = "D-DIN",
+        size = 12 * (ScrW() / 1600)
+    })
 end
 
 createFont()
@@ -108,7 +112,7 @@ hook.Add("HUDPaintBackground", "downed_bleed_out_hud", function()
     local scale = ScrW() / 1600
     local savior = rag:GetNWEntity("savior")
     local isBeingRevived = IsValid(savior)
-    local isGivingUp = ply:KeyDown(IN_USE)
+    local isGivingUp = ply:KeyDown(HSR.GIVE_UP_KEY)
 
     // Math
     -- Bleed out
@@ -153,6 +157,7 @@ hook.Add("HUDPaintBackground", "downed_bleed_out_hud", function()
     // Text 
     surface.SetDrawColor(255, 255, 255, 255)
     draw.SimpleText(downedMessage, "textFont", boxX + (textW / 2) + 5, boxY + (boxH / 2), Color(255, 255, 255, 255), TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
+    draw.SimpleText("Hold 'Space' to give up", "textSmallFont", boxX + (boxW / 2), boxY - (boxH / 2) + 100, Color(255, 255, 255, 255), TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
 
     // Timer ring
     surface.SetDrawColor(ringColor)

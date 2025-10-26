@@ -1,7 +1,7 @@
 HSR = {}
 HSR.downedPlayers = {}
 
-HSR.RAGDOLL_BLEED_OUT_TIME = 120
+HSR.RAGDOLL_BLEED_OUT_TIME = 30
 HSR.RAGDOLL_GIVE_UP_TIME = 2
 HSR.RAGDOLL_REVIVE_TIME = 5
 HSR.GIVE_UP_KEY = IN_JUMP -- If you change this, then you will have to change the text on line 160 in cl_revive.lua
@@ -69,6 +69,11 @@ function HSR.createDownedRagdoll(ply)
 
 	ply:SetNWBool("downed", true)
 	ply:SetNWEntity("downed_ragdoll", ragdoll)
+	ply:Freeze(false)
+	ply:SetNotSolid(true)
+	ply:DrawViewModel(false)
+	ply:SetNoDraw(true)
+	ply:SetMoveType(MOVETYPE_NONE)
 
 	return ragdoll
 end
@@ -85,12 +90,6 @@ function HSR.createRagdollController(ply, ragdoll)
 	bullseye:Spawn()
 	bullseye:Activate()
 	bullseye:SetSolid(SOLID_NONE)
-
-	ply:Spectate(OBS_MODE_CHASE)
-	ply:UnSpectate()
-	ply:SetMoveType(MOVETYPE_OBSERVER)
-	ply:SetCollisionGroup(COLLISION_GROUP_IN_VEHICLE)
-	ply:SpectateEntity(ply:GetNWEntity("downed_ragdoll"))
 	ply:StripWeapons()
 end
 

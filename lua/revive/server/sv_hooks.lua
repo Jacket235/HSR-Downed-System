@@ -2,7 +2,9 @@ util.AddNetworkString("downedPlayerLocations")
 
 include("revive/sh_revive.lua")
 
-hook.Add("PlayerHurt", "homigrad_style_revives_ph", function(ply, atkr, hp, dmg)
+hook.Add("PlayerHurt", "HSR_ph", function(ply, atkr, hp, dmg)
+	-- if not ply:IsBot() then return end
+
 	if not ply:GetNWBool("downed") and hp <= 0  then 
 		ply:SetHealth(100)
 
@@ -14,7 +16,7 @@ hook.Add("PlayerHurt", "homigrad_style_revives_ph", function(ply, atkr, hp, dmg)
 	end
 end)
 
-hook.Add("Think", "homigrad_style_revives_bleed_out", function()
+hook.Add("Think", "HSR_bleed_out", function()
 	if table.IsEmpty(HSR.downedPlayers) then return end
 
 	for ply, rag in pairs(HSR.downedPlayers) do
@@ -57,7 +59,7 @@ hook.Add("Think", "homigrad_style_revives_bleed_out", function()
 	end
 end)
 
-hook.Add("Think", "homigrad_style_revives_ragdoll_control", function()
+hook.Add("Think", "HSR_ragdoll_control", function()
 	if table.IsEmpty(HSR.downedPlayers) then return end
 
 	for ply, rag in pairs(HSR.downedPlayers) do
@@ -140,7 +142,7 @@ hook.Add("Think", "homigrad_style_revives_ragdoll_control", function()
 	net.Send(player.GetAll())
 end)
 
-hook.Add("Think", "homigrad_style_revives_reviving", function()
+hook.Add("Think", "HSR_reviving", function()
 	if table.IsEmpty(HSR.downedPlayers) then return end
  
 	for ply, rag in pairs(HSR.downedPlayers) do
@@ -164,10 +166,12 @@ hook.Add("Think", "homigrad_style_revives_reviving", function()
 				net.Send(player.GetAll())
 			end
 		end
+
+		print(ply:Nick() .. "'s health is " .. ply:Health())
 	end
 end)
 
-hook.Add("EntityTakeDamage", "homigrad_style_revives_etd", function(rag, dmgInfo)
+hook.Add("EntityTakeDamage", "HSR_etd", function(rag, dmgInfo)
 	local ply = rag:GetNWEntity("owner")
 
 	if not IsValid(ply) or not ply:Alive() then return end
@@ -180,12 +184,10 @@ hook.Add("EntityTakeDamage", "homigrad_style_revives_etd", function(rag, dmgInfo
 
 	if rag and multiplier then dmgInfo:ScaleDamage(multiplier) end
 
-	ply:SetHealth(ply:Health() - dmgInfo:GetDamage())
-
-	if ply:Health() <= 0 then ply:Kill() end 
+	ply:TakeDamageInfo(dmgInfo)
 end)
 
-hook.Add("PlayerUse", "homigrad_style_revives_pu", function(user, ent)
+hook.Add("PlayerUse", "HSR_pu", function(user, ent)
 	if ent:GetNWEntity("owner") and ent:GetClass() == "prop_ragdoll" then
 		local plyDowned = ent:GetNWEntity("owner")
 
@@ -201,7 +203,7 @@ hook.Add("PlayerUse", "homigrad_style_revives_pu", function(user, ent)
 	end
 end)
 
-hook.Add("PlayerDeath", "homigrad_style_revives_pd", function(ply, _, atkr)
+hook.Add("PlayerDeath", "HSR_pd", function(ply, _, atkr)
 	local downed_ragdoll = ply:GetNWEntity("downed_ragdoll")
 
 	if IsValid(downed_ragdoll) then 
@@ -222,7 +224,7 @@ hook.Add("PlayerDeath", "homigrad_style_revives_pd", function(ply, _, atkr)
 	end
 end)
 
-hook.Add("PlayerSpawn", "homigrad_style_revives_ps", function(ply, _)
+hook.Add("PlayerSpawn", "HSR_ps", function(ply, _)
 	local downed_ragdoll = ply:GetNWEntity("downed_ragdoll")
 	
 	if IsValid(downed_ragdoll) and IsValid(downed_ragdoll.bullseye) then

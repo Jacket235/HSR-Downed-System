@@ -50,6 +50,9 @@ hook.Add("Think", "HSR_bleed_out", function()
 	for ply, rag in pairs(HSR.downedPlayers) do
 		if not ply:GetNWBool("downed") or not IsValid(rag) then continue end
 
+		local bleed_out_time = GetConVar("hsr_ragdoll_bleed_out_time"):GetInt()
+	    local give_up_time = GetConVar("hsr_ragdoll_give_up_time"):GetInt()
+
 		local savior = rag:GetNWEntity("savior")
 		local startBleedOutTime = rag:GetNWFloat("bleedOutStartTime")
 		local startGiveUpTime = rag:GetNWFloat("giveUpStartTime")
@@ -68,10 +71,10 @@ hook.Add("Think", "HSR_bleed_out", function()
 		end
 
 		// This checks if the player is giving up
-		if ply:KeyDown(HSR.GIVE_UP_KEY) and not (startGiveUpTime >= 0) then
+		if ply:KeyDown(IN_JUMP) and not (startGiveUpTime >= 0) then
 			rag:SetNWFloat("giveUpStartTime", CurTime())
 		end
-		if not ply:KeyDown(HSR.GIVE_UP_KEY) and (startGiveUpTime >= 0) then
+		if not ply:KeyDown(IN_JUMP) and (startGiveUpTime >= 0) then
 			rag:SetNWFloat("giveUpStartTime", -1)
 		end
 
@@ -80,7 +83,7 @@ hook.Add("Think", "HSR_bleed_out", function()
 		
 		if rag.pauseBleedOutTime then continue end
 
-		if elapsedTime >= HSR.RAGDOLL_BLEED_OUT_TIME or elapsedGiveUpTime >= HSR.RAGDOLL_GIVE_UP_TIME then
+		if elapsedTime >= bleed_out_time or elapsedGiveUpTime >= give_up_time then
 			local attacker = IsValid(rag.attacker) and rag.attacker or ply
 			local inflictor = IsValid(rag.attackerWeapon) and rag.attackerWeapon or attacker
 
@@ -112,7 +115,7 @@ hook.Add("Think", "HSR_ragdoll_control", function()
 			continue
 		end
 		if not ply:GetNWBool("downed") or not IsValid(ply:GetNWEntity("downed_ragdoll")) then continue end
-		
+
 		local downed_ragdoll = rag
 
 		local headIndex = downed_ragdoll:LookupAttachment("eyes")
@@ -190,9 +193,11 @@ hook.Add("Think", "HSR_reviving", function()
 				rag:SetNWFloat("reviveStartTime", CurTime())
 			end
 
+			local revive_time = GetConVar("hsr_ragdoll_revive_time"):GetInt()
+
 			local elapsedTime = CurTime() - rag:GetNWFloat("reviveStartTime") 
 
-			if elapsedTime >= HSR.RAGDOLL_REVIVE_TIME then 
+			if elapsedTime >= revive_time then 
 				HSR.revivePlayer(ply)
 
 				HSR.downedPlayers[ply] = nil

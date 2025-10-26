@@ -1,10 +1,9 @@
 HSR = {}
 HSR.downedPlayers = {}
 
-HSR.RAGDOLL_BLEED_OUT_TIME = 30
-HSR.RAGDOLL_GIVE_UP_TIME = 1
-HSR.RAGDOLL_REVIVE_TIME = 3
-HSR.GIVE_UP_KEY = IN_JUMP -- If you change this, then you will have to change the text on line 160 in cl_revive.lua
+CreateConVar("hsr_ragdoll_bleed_out_time", "30", { FCVAR_REPLICATED, FCVAR_ARCHIVE }, "How long the ragdoll will bleed out for")
+CreateConVar("hsr_ragdoll_give_up_time", "1", { FCVAR_REPLICATED, FCVAR_ARCHIVE }, "How long it takes to give up")
+CreateConVar("hsr_ragdoll_revive_time", "4", { FCVAR_REPLICATED, FCVAR_ARCHIVE}, "How long it takes to revive someone")
 
 HSR.boneToHitGroup = { 
     ["ValveBiped.Bip01_Head1"] = 1,

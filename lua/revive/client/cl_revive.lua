@@ -109,26 +109,30 @@ hook.Add("HUDPaintBackground", "downed_bleed_out_hud", function()
 
 	if not IsValid(ply) or not IsValid(rag) or not ply:Alive() then return end
 
+    local bleed_out_time = GetConVar("hsr_ragdoll_bleed_out_time"):GetInt()
+    local revive_time = GetConVar("hsr_ragdoll_revive_time"):GetInt()
+    local give_up_time = GetConVar("hsr_ragdoll_give_up_time"):GetInt()
+
     local scale = ScrW() / 1600
     local savior = rag:GetNWEntity("savior")
     local isBeingRevived = IsValid(savior)
-    local isGivingUp = ply:KeyDown(HSR.GIVE_UP_KEY)
+    local isGivingUp = ply:KeyDown(IN_JUMP)
 
     // Math
     -- Bleed out
     local startBleedOutTime = rag:GetNWFloat("bleedOutStartTime", 0)
     local elapsedBleedOut = CurTime() - startBleedOutTime
-    local fractionBleedOut = 1 - math.Clamp(elapsedBleedOut / HSR.RAGDOLL_BLEED_OUT_TIME, 0, 1)
+    local fractionBleedOut = 1 - math.Clamp(elapsedBleedOut / bleed_out_time, 0, 1)
 
     -- Revive
     local startReviveTime = rag:GetNWFloat("reviveStartTime", 0)
     local elapsedRevive = CurTime() - startReviveTime
-    local fractionRevive = math.Clamp(elapsedRevive / HSR.RAGDOLL_REVIVE_TIME, 0, 1)
+    local fractionRevive = math.Clamp(elapsedRevive / revive_time, 0, 1)
 
     --Give up
     local startGiveUpTime = rag:GetNWFloat("giveUpStartTime", CurTime())
     local elapsedGiveUp = CurTime() - startGiveUpTime
-    local fractionGiveUp = math.Clamp(elapsedGiveUp / HSR.RAGDOLL_GIVE_UP_TIME, 0, 1)
+    local fractionGiveUp = math.Clamp(elapsedGiveUp / give_up_time, 0, 1)
 
     // Text properties
     surface.SetFont("textFont")
@@ -167,6 +171,9 @@ end)
 hook.Add("PostDrawOpaqueRenderables", "draw_downed_players_icons", function()
     if table.IsEmpty(downedPlayers) then return end
 
+    local bleed_out_time = GetConVar("hsr_ragdoll_bleed_out_time"):GetInt()
+    local revive_time = GetConVar("hsr_ragdoll_revive_time"):GetInt()
+
     local lp = LocalPlayer()
     local eyepos = EyePos()
     local maxDist = 4000
@@ -195,11 +202,11 @@ hook.Add("PostDrawOpaqueRenderables", "draw_downed_players_icons", function()
         else
             elapsedBleedOut = CurTime() - startBleedOutTime
         end    
-        local fractionBleedOut = 1 - math.Clamp(elapsedBleedOut / HSR.RAGDOLL_BLEED_OUT_TIME, 0, 1)
+        local fractionBleedOut = 1 - math.Clamp(elapsedBleedOut / bleed_out_time, 0, 1)
 
         local startReviveTime = rag:GetNWFloat("reviveStartTime", 0)
         local elapsedRevive = CurTime() - startReviveTime
-        local fractionRevive = math.Clamp(elapsedRevive / HSR.RAGDOLL_REVIVE_TIME, 0, 1)
+        local fractionRevive = math.Clamp(elapsedRevive / revive_time, 0, 1)
         
         cam.IgnoreZ(true)
         cam.Start3D2D(pos, ang, math.max(240, math.sqrt(distance)) / 2400)

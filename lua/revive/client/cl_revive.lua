@@ -157,7 +157,7 @@ hook.Add("HUDPaintBackground", "downed_bleed_out_hud", function()
     // Text 
     surface.SetDrawColor(255, 255, 255, 255)
     draw.SimpleText(downedMessage, "textFont", boxX + (textW / 2) + 5, boxY + (boxH / 2), Color(255, 255, 255, 255), TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
-    draw.SimpleTextOutlined("Hold 'Space' to give up", "textSmallFont", boxX + (boxW / 2), boxY - (boxH / 2) + 85, Color(255, 255, 255, 255), TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER, 1, Color(0, 0, 0, 255))
+    draw.SimpleTextOutlined("Hold 'Space' to give up", "textSmallFont", boxX + (boxW / 2), boxY - (boxH / 2) + (85 * scale), Color(255, 255, 255, 255), TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER, 1, Color(0, 0, 0, 255))
 
     // Timer ring
     surface.SetDrawColor(ringColor)

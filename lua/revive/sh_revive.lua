@@ -3,7 +3,7 @@ HSR.downedPlayers = {}
 
 HSR.RAGDOLL_BLEED_OUT_TIME = 30
 HSR.RAGDOLL_GIVE_UP_TIME = 1
-HSR.RAGDOLL_REVIVE_TIME = 5
+HSR.RAGDOLL_REVIVE_TIME = 3
 HSR.GIVE_UP_KEY = IN_JUMP -- If you change this, then you will have to change the text on line 160 in cl_revive.lua
 
 HSR.boneToHitGroup = { 

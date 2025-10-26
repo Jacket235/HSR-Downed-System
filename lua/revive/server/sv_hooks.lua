@@ -3,8 +3,6 @@ util.AddNetworkString("downedPlayerLocations")
 include("revive/sh_revive.lua")
 
 hook.Add("PlayerHurt", "HSR_ph", function(ply, atkr, hp, dmg)
-	-- if not ply:IsBot() then return end
-
 	if not ply:GetNWBool("downed") and hp <= 0  then 
 		ply:SetHealth(100)
 
@@ -14,7 +12,7 @@ hook.Add("PlayerHurt", "HSR_ph", function(ply, atkr, hp, dmg)
 		else
 			ragdoll.attacker = atkr
 		end
-		if IsValid(ragdoll.attacker) and IsValid(atkr:GetActiveWeapon()) then
+		if IsValid(ragdoll.attacker) and (atkr:IsPlayer() or atkr:IsNPC())  then
 			ragdoll.attackerWeapon = atkr:GetActiveWeapon()
 		end
 		HSR.storeBones(ragdoll, ply)
@@ -33,9 +31,15 @@ hook.Add("OnEntityCreated", "HSR_target_bullseye", function(ent)
 		if not IsValid(ent) then return end
 
 		for _, npc in pairs(ents.FindByClass("npc_*")) do
-	        npc:AddEntityRelationship(ent, D_HT, 0)
-	        npc:SetNPCState(NPC_STATE_COMBAT)
-	        npc:SetEnemy(ent)
+			if npc.AddEntityRelationship then
+				local disp = npc:Disposition(ent:GetParent():GetNWEntity("owner"))
+
+				if disp == D_HT or disp == D_FR then
+			        npc:AddEntityRelationship(ent, D_HT, 0)
+			        npc:SetNPCState(NPC_STATE_COMBAT)
+			        npc:SetEnemy(ent)
+			    end
+		    end
 	    end
 	end)
 end)

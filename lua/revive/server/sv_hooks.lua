@@ -22,7 +22,9 @@ hook.Add("Think", "homigrad_style_revives_bleed_out", function()
 
 		local savior = rag:GetNWEntity("savior")
 		local startBleedOutTime = rag:GetNWFloat("bleedOutStartTime")
+		local startGiveUpTime = rag:GetNWFloat("giveUpStartTime")
 
+		// This checks if player is being revived
 		if IsValid(savior) and not rag.pauseBleedOutTime then
 			rag.pauseBleedOutTime = CurTime()
 			rag:SetNWFloat("bleedOutPausedElapsed", CurTime() - startBleedOutTime)
@@ -35,11 +37,20 @@ hook.Add("Think", "homigrad_style_revives_bleed_out", function()
 			startBleedOutTime = rag:GetNWFloat("bleedOutStartTime")
 		end
 
+		// This checks if the player is giving up
+		if ply:KeyDown(IN_USE) and not (startGiveUpTime >= 0) then
+			rag:SetNWFloat("giveUpStartTime", CurTime())
+		end
+		if not ply:KeyDown(IN_USE) and (startGiveUpTime >= 0) then
+			rag:SetNWFloat("giveUpStartTime", -1)
+		end
+
 		local elapsedTime = CurTime() - startBleedOutTime
+		local elapsedGiveUpTime = startGiveUpTime > 0 and CurTime() - startGiveUpTime or 0
 		
 		if rag.pauseBleedOutTime then continue end
 
-		if elapsedTime >= HSR.RAGDOLL_BLEED_OUT_TIME then
+		if elapsedTime >= HSR.RAGDOLL_BLEED_OUT_TIME or elapsedGiveUpTime >= HSR.RAGDOLL_GIVE_UP_TIME then
 			ply:SetNWBool("downed", false)
 			ply:Kill()	
 		end

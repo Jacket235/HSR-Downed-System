@@ -2,6 +2,7 @@ HSR = {}
 HSR.downedPlayers = {}
 
 HSR.RAGDOLL_BLEED_OUT_TIME = 30
+HSR.RAGDOLL_GIVE_UP_TIME = 2
 HSR.RAGDOLL_REVIVE_TIME = 5
 
 HSR.boneToHitGroup = { 

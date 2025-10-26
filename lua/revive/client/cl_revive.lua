@@ -99,7 +99,7 @@ end)
 local downedPlayers = {}
 local health_icon = Material("homigrad_style_downs/small-health.png")
 
-hook.Add("HUDPaintBackground", "downed_bleed_out_timer", function()
+hook.Add("HUDPaintBackground", "downed_bleed_out_hud", function()
     local ply = LocalPlayer()
     local rag = ply:GetNWEntity("downed_ragdoll")
 
@@ -108,6 +108,7 @@ hook.Add("HUDPaintBackground", "downed_bleed_out_timer", function()
     local scale = ScrW() / 1600
     local savior = rag:GetNWEntity("savior")
     local isBeingRevived = IsValid(savior)
+    local isGivingUp = ply:KeyDown(IN_USE)
 
     // Math
     -- Bleed out
@@ -120,9 +121,14 @@ hook.Add("HUDPaintBackground", "downed_bleed_out_timer", function()
     local elapsedRevive = CurTime() - startReviveTime
     local fractionRevive = math.Clamp(elapsedRevive / HSR.RAGDOLL_REVIVE_TIME, 0, 1)
 
+    --Give up
+    local startGiveUpTime = rag:GetNWFloat("giveUpStartTime", CurTime())
+    local elapsedGiveUp = CurTime() - startGiveUpTime
+    local fractionGiveUp = math.Clamp(elapsedGiveUp / HSR.RAGDOLL_GIVE_UP_TIME, 0, 1)
+
     // Text properties
     surface.SetFont("textFont")
-    local downedMessage = isBeingRevived and "You are being helped up" or "You are bleeding out"
+    local downedMessage = isGivingUp and "Giving up" or (isBeingRevived and "You are being helped up" or "You are bleeding out")
     local textW, textH = surface.GetTextSize(downedMessage)
 
     // Ring properties
@@ -133,8 +139,8 @@ hook.Add("HUDPaintBackground", "downed_bleed_out_timer", function()
     local b = minGB + (255 - minGB) * pulse
     local ringRadius = 20 * scale
     local ringThickSkinJacket = 5 * scale
-    local ringColor = isBeingRevived and Color(123, 183, 232, 255) or Color(255, g, b, 255)
-    local ringFraction = isBeingRevived and fractionRevive or fractionBleedOut
+    local ringColor = isGivingUp and Color(255, g, b, 255) or (isBeingRevived and Color(123, 183, 232, 255) or Color(255, g, b, 255))
+    local ringFraction = (isGivingUp and fractionGiveUp) or (isBeingRevived and fractionRevive) or fractionBleedOut
 
     // Background box properties
     local boxW, boxH = textW + (10 + (ringRadius * 2 + 10) * scale), 50 * scale

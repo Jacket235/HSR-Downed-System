@@ -2,136 +2,22 @@ util.AddNetworkString("downedPlayerLocations")
 
 include("revive/sh_revive.lua")
 
-local function createDownedRagdoll(ply)
-	local ragdoll = ents.Create("prop_ragdoll")
-	ragdoll:SetNWFloat("bleedOutStartTime", CurTime())
-	ragdoll:SetModel(ply:GetModel())
-	ragdoll:SetPos(ply:GetPos())
-	ragdoll:SetAngles(ply:GetAngles())
-	ragdoll:SetNWVector("rag_ply_color", ply:GetPlayerColor())
-	ragdoll:SetCollisionGroup(COLLISION_GROUP_WEAPON)
-	ragdoll:Spawn()
-	ragdoll:Activate()
-    local vel = ply:GetVelocity()/1 + (force or Vector(0,0,0))
-	for i = 0, ragdoll:GetPhysicsObjectCount() - 1 do
-		local physobj = ragdoll:GetPhysicsObjectNum( i )
-		local ragbonename = ragdoll:GetBoneName(ragdoll:TranslatePhysBoneToBone(i))
-		local bone = ply:LookupBone(ragbonename)
-		if(bone)then
-			local bonemat = ply:GetBoneMatrix(bone)
-			if(bonemat)then
-				local bonepos = bonemat:GetTranslation()
-				local boneang = bonemat:GetAngles()
-				physobj:SetPos(bonepos, true)
-				physobj:SetAngles(boneang)
-				if not ply:Alive() then vel = vel end
-				physobj:AddVelocity(vel)
-			end
-		end
-	end
-
-	ply:SetNWBool("downed", true)
-	ply:SetNWEntity("downed_ragdoll", ragdoll)
-
-	return ragdoll
-end
-
-local function createRagdollController(ply, ragdoll)
-	ragdoll.bullseye = ents.Create("npc_bullseye")
-	ragdoll:SetNWEntity("owner", ply)
-
-	local bullseye = ragdoll.bullseye
-	local ragdollHead = ragdoll:GetPhysicsObjectNum(10)
-	bullseye:SetPos(ragdollHead:GetPos())
-	bullseye:SetParent(ragdoll, ragdoll:LookupAttachment("eyes"))
-	bullseye:SetHealth(1000)
-	bullseye:Spawn()
-	bullseye:Activate()
-	bullseye:SetSolid(SOLID_NONE)
-
-	ply:Spectate(OBS_MODE_CHASE)
-	ply:UnSpectate()
-	ply:SetMoveType(MOVETYPE_OBSERVER)
-	ply:SetCollisionGroup(COLLISION_GROUP_IN_VEHICLE)
-	ply:SpectateEntity(ply:GetNWEntity("downed_ragdoll"))
-	ply:StripWeapons()
-end
-
-local function storeBones(ragdoll, ply)
-	local function findPhysBone(bonename)
-		local boneIndex = ply:LookupBone(bonename)
-		if not boneIndex then return nil end
-		local physID = ragdoll:TranslateBoneToPhysBone(boneIndex)
-		return physID
-	end
-
-	ragdoll.LeftHandPhys  = findPhysBone("ValveBiped.Bip01_L_Hand")
-	ragdoll.RightHandPhys = findPhysBone("ValveBiped.Bip01_R_Hand")
-end
-
-local function storeWeapons(ragdoll, ply)
-	ragdoll.weapons = {}
-
-	for _, weapon in pairs(ply:GetWeapons()) do
-	    local weaponInfo = {
-	        class = weapon:GetClass(),
-	        clip1 = weapon:Clip1(),
-	        clip2 = weapon:Clip2(),
-	        primaryAmmo = ply:GetAmmoCount(weapon:GetPrimaryAmmoType()),
-	        secondaryAmmo = ply:GetAmmoCount(weapon:GetSecondaryAmmoType())
-	    }
-	    table.insert(ragdoll.weapons, weaponInfo)
-	end
-end
-
-local function revivePlayer(ply)
-	local downed_ragdoll = ply:GetNWEntity("downed_ragdoll")
-	local ragdollPos = downed_ragdoll:GetPhysicsObject():GetPos()
-
-	ply:UnSpectate()
-	ply:Spawn()
-	ply:SetHealth(ply:GetMaxHealth() * .5)
-	ply:StripWeapons()
-	ply:StripAmmo()
-	ply:SetPos(ragdollPos)
-
-	for _, weaponInfo in pairs(downed_ragdoll.weapons or {}) do
-        local weapon = ply:Give(weaponInfo.class)
-        if IsValid(weapon) then
-            weapon:SetClip1(weaponInfo.clip1)
-            weapon:SetClip2(weaponInfo.clip2)
-
-            local primaryType = weapon:GetPrimaryAmmoType()
-        	local secondaryType = weapon:GetSecondaryAmmoType()
-
-            ply:SetAmmo(weaponInfo.primaryAmmo, primaryType)
-            ply:SetAmmo(weaponInfo.secondaryAmmo, secondaryType)
-        end
-    end
-
-    ply:SetNWBool("downed", false)
-    ply:SetNWEntity("downed_ragdoll", nil)
-    downedPlayers[ply] = nil
-end
-
-downedPlayers = {}
-
 hook.Add("PlayerHurt", "homigrad_style_revives_ph", function(ply, atkr, hp, dmg)
 	if not ply:GetNWBool("downed") and hp <= 0  then 
-		ply:SetHealth(1)
+		ply:SetHealth(100)
 
-		local ragdoll = createDownedRagdoll(ply)
-		storeBones(ragdoll, ply)
-		storeWeapons(ragdoll, ply)
-		local controller = createRagdollController(ply, ragdoll)
-		downedPlayers[ply] = ragdoll
+		local ragdoll = HSR.createDownedRagdoll(ply)
+		HSR.storeBones(ragdoll, ply)
+		HSR.storeWeapons(ragdoll, ply)
+		local controller = HSR.createRagdollController(ply, ragdoll)
+		HSR.downedPlayers[ply] = ragdoll
 	end
 end)
 
 hook.Add("Think", "homigrad_style_revives_bleed_out", function()
-	if table.IsEmpty(downedPlayers) then return end
+	if table.IsEmpty(HSR.downedPlayers) then return end
 
-	for ply, rag in pairs(downedPlayers) do
+	for ply, rag in pairs(HSR.downedPlayers) do
 		if not ply:GetNWBool("downed") or not IsValid(rag) then continue end
 
 		local savior = rag:GetNWEntity("savior")
@@ -161,18 +47,18 @@ hook.Add("Think", "homigrad_style_revives_bleed_out", function()
 end)
 
 hook.Add("Think", "homigrad_style_revives_ragdoll_control", function()
-	if table.IsEmpty(downedPlayers) then return end
+	if table.IsEmpty(HSR.downedPlayers) then return end
 
-	for ply, rag in pairs(downedPlayers) do
+	for ply, rag in pairs(HSR.downedPlayers) do
 		if not IsValid(ply) then
 			if IsValid(rag) then
 				rag:Remove()
 			end
 
-			downedPlayers[ply] = nil
+			HSR.downedPlayers[ply] = nil
 
 			net.Start("downedPlayerLocations")
-				net.WriteTable(downedPlayers)
+				net.WriteTable(HSR.downedPlayers)
 			net.Send(player.GetAll())
 			continue
 		end
@@ -239,14 +125,14 @@ hook.Add("Think", "homigrad_style_revives_ragdoll_control", function()
 	end
 
 	net.Start("downedPlayerLocations")
-		net.WriteTable(downedPlayers)
+		net.WriteTable(HSR.downedPlayers)
 	net.Send(player.GetAll())
 end)
 
 hook.Add("Think", "homigrad_style_revives_reviving", function()
-	if table.IsEmpty(downedPlayers) then return end
+	if table.IsEmpty(HSR.downedPlayers) then return end
  
-	for ply, rag in pairs(downedPlayers) do
+	for ply, rag in pairs(HSR.downedPlayers) do
 		local savior = rag:GetNWEntity("savior")
 
 		if IsValid(savior) then
@@ -258,23 +144,41 @@ hook.Add("Think", "homigrad_style_revives_reviving", function()
 			local elapsedTime = CurTime() - rag:GetNWFloat("reviveStartTime") 
 
 			if elapsedTime >= REVIVE_TIME then 
-				revivePlayer(ply)
+				HSR.revivePlayer(ply)
 
-				downedPlayers[ply] = nil
+				HSR.downedPlayers[ply] = nil
 
 				net.Start("downedPlayerLocations")
-					net.WriteTable(downedPlayers)
+					net.WriteTable(HSR.downedPlayers)
 				net.Send(player.GetAll())
 			end
 		end
 	end
 end)
 
+hook.Add("EntityTakeDamage", "homigrad_style_revives_etd", function(rag, dmgInfo)
+	local ply = rag:GetNWEntity("owner")
+
+	if not IsValid(ply) or not ply:Alive() then return end
+	if CurTime() - rag:GetNWFloat("bleedOutStartTime") < 2 and (dmgInfo:GetDamageType() == DMG_FALL or dmgInfo:GetDamageType() == DMG_CRUSH) then return end
+
+	local physBone = HSR.getPhysicsBoneDamageInfo(rag, dmgInfo)
+	local boneName = rag:GetBoneName(rag:TranslatePhysBoneToBone(physBone))
+	local hitGroup = HSR.boneToHitGroup[boneName]
+	local multiplier = HSR.ragdollDamageBoneMultiplier[hitGroup]
+
+	if rag and multiplier then dmgInfo:ScaleDamage(multiplier) end
+
+	ply:SetHealth(ply:Health() - dmgInfo:GetDamage())
+
+	if ply:Health() <= 0 then ply:Kill() end 
+end)
+
 hook.Add("PlayerUse", "homigrad_style_revives_pu", function(user, ent)
 	if ent:GetNWEntity("owner") and ent:GetClass() == "prop_ragdoll" then
 		local plyDowned = ent:GetNWEntity("owner")
 
-		for ply, rag in pairs(downedPlayers) do
+		for ply, rag in pairs(HSR.downedPlayers) do
 			if ent == rag then
 				if IsValid(rag:GetNWEntity("savior")) then continue end
 				if ply != plyDowned then continue end
@@ -299,10 +203,10 @@ hook.Add("PlayerDeath", "homigrad_style_revives_pd", function(ply, _, atkr)
         ply:SetMoveType(MOVETYPE_OBSERVER)
         ply:SetCollisionGroup(COLLISION_GROUP_IN_VEHICLE)
         ply:SpectateEntity(downed_ragdoll)
-        downedPlayers[ply] = nil
+        HSR.downedPlayers[ply] = nil
 
         net.Start("downedPlayerLocations")
-			net.WriteTable(downedPlayers)
+			net.WriteTable(HSR.downedPlayers)
 		net.Send(player.GetAll())
 	end
 end)

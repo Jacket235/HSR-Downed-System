@@ -9,8 +9,18 @@ hook.Add("PlayerHurt", "HSR_ph", function(ply, atkr, hp, dmg)
 		ply:SetHealth(100)
 
 		local ragdoll = HSR.createDownedRagdoll(ply)
+		if not IsValid(atkr) or atkr:IsWorld() or atkr == ply then
+			ragdoll.attacker = ply
+		else
+			ragdoll.attacker = atkr
+		end
+		if IsValid(atkr:GetActiveWeapon()) then
+			ragdoll.attackerWeapon = atkr:GetActiveWeapon()
+		end
 		HSR.storeBones(ragdoll, ply)
 		HSR.storeWeapons(ragdoll, ply)
+
+
 		local controller = HSR.createRagdollController(ply, ragdoll)
 		HSR.downedPlayers[ply] = ragdoll
 	end
@@ -53,8 +63,16 @@ hook.Add("Think", "HSR_bleed_out", function()
 		if rag.pauseBleedOutTime then continue end
 
 		if elapsedTime >= HSR.RAGDOLL_BLEED_OUT_TIME or elapsedGiveUpTime >= HSR.RAGDOLL_GIVE_UP_TIME then
-			ply:SetNWBool("downed", false)
-			ply:Kill()	
+			local attacker = IsValid(rag.attacker) and rag.attacker or ply
+			local inflictor = IsValid(rag.attackerWeapon) and rag.attackerWeapon or attacker
+
+		    local dmg = DamageInfo()
+		    dmg:SetDamage(ply:Health() + 1)
+		    dmg:SetAttacker(attacker)
+		    dmg:SetInflictor(inflictor)
+		    dmg:SetDamageType(DMG_GENERIC)
+
+		    ply:TakeDamageInfo(dmg)
 		end
 	end
 end)
@@ -166,8 +184,6 @@ hook.Add("Think", "HSR_reviving", function()
 				net.Send(player.GetAll())
 			end
 		end
-
-		print(ply:Nick() .. "'s health is " .. ply:Health())
 	end
 end)
 

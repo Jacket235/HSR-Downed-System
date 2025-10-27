@@ -232,6 +232,21 @@ hook.Add("PostDrawOpaqueRenderables", "draw_downed_players_icons", function()
     end
 end)
 
-net.Receive("downedPlayerLocations", function()
-    downedPlayers = net.ReadTable()
+net.Receive("downedPlayerLocation", function()
+    local ragdoll = net.ReadEntity()
+    local ragdollOwner = net.ReadEntity()
+
+    for ply, rag in pairs(downedPlayers) do
+        if not IsValid(ply) or not IsValid(rag) then
+            downedPlayers[ply] = nil
+        end
+    end
+
+    if not IsValid(ragdoll) then
+        downedPlayers[ragdollOwner] = nil
+
+        return
+    end
+
+    downedPlayers[ragdollOwner] = ragdoll
 end)

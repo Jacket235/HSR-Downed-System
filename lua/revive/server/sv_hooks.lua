@@ -1,4 +1,4 @@
-util.AddNetworkString("downedPlayerLocations")
+util.AddNetworkString("downedPlayerLocation")
 
 include("revive/sh_revive.lua")
 
@@ -48,7 +48,7 @@ hook.Add("Think", "HSR_bleed_out", function()
 	if table.IsEmpty(HSR.downedPlayers) then return end
 
 	for ply, rag in pairs(HSR.downedPlayers) do
-		if not ply:GetNWBool("downed") or not IsValid(rag) then continue end
+		if not ply:GetNWBool("downed") or not IsValid(rag) or not IsValid(ply) then continue end
 
 		local bleed_out_time = GetConVar("hsr_ragdoll_bleed_out_time"):GetInt()
 	    local give_up_time = GetConVar("hsr_ragdoll_give_up_time"):GetInt()
@@ -103,15 +103,14 @@ hook.Add("Think", "HSR_ragdoll_control", function()
 
 	for ply, rag in pairs(HSR.downedPlayers) do
 		if not IsValid(ply) then
-			if IsValid(rag) then
-				rag:Remove()
-			end
+			if IsValid(rag) then rag:Remove() end
 
 			HSR.downedPlayers[ply] = nil
-
-			net.Start("downedPlayerLocations")
-				net.WriteTable(HSR.downedPlayers)
+			net.Start("downedPlayerLocation")
+			    net.WriteEntity(NULL)       
+			    net.WriteEntity(ply)        
 			net.Send(player.GetAll())
+
 			continue
 		end
 		if not ply:GetNWBool("downed") or not IsValid(ply:GetNWEntity("downed_ragdoll")) then continue end
@@ -174,11 +173,12 @@ hook.Add("Think", "HSR_ragdoll_control", function()
 
             phys:ApplyForceCenter(force)
 		end
-	end
 
-	net.Start("downedPlayerLocations")
-		net.WriteTable(HSR.downedPlayers)
-	net.Send(player.GetAll())
+		net.Start("downedPlayerLocation")
+			net.WriteEntity(rag)
+			net.WriteEntity(ply)
+		net.Send(player.GetAll())
+	end
 end)
 
 hook.Add("Think", "HSR_reviving", function()
@@ -201,10 +201,10 @@ hook.Add("Think", "HSR_reviving", function()
 				HSR.revivePlayer(ply)
 
 				HSR.downedPlayers[ply] = nil
-
-				net.Start("downedPlayerLocations")
-					net.WriteTable(HSR.downedPlayers)
-				net.Send(player.GetAll())
+				net.Start("downedPlayerLocation")
+				    net.WriteEntity(NULL)       
+				    net.WriteEntity(ply)        
+				net.Send(player.GetAll())		
 			end
 		end
 	end
@@ -255,10 +255,11 @@ hook.Add("PlayerDeath", "HSR_pd", function(ply, _, atkr)
         ply:SetMoveType(MOVETYPE_OBSERVER)
         ply:SetCollisionGroup(COLLISION_GROUP_IN_VEHICLE)
         ply:SpectateEntity(downed_ragdoll)
+        
         HSR.downedPlayers[ply] = nil
-
-        net.Start("downedPlayerLocations")
-			net.WriteTable(HSR.downedPlayers)
+        net.Start("downedPlayerLocation")
+		    net.WriteEntity(NULL)      
+		    net.WriteEntity(ply)       
 		net.Send(player.GetAll())
 	end
 end)
@@ -266,7 +267,7 @@ end)
 hook.Add("PlayerSpawn", "HSR_ps", function(ply, _)
 	local downed_ragdoll = ply:GetNWEntity("downed_ragdoll")
 	
-	if IsValid(downed_ragdoll) and IsValid(downed_ragdoll.bullseye) then
+	if IsValid(downed_ragdoll) then
 		ply:UnSpectate()
 		downed_ragdoll:Remove()
 		ply:SetNWEntity("downed_ragdoll", nil)

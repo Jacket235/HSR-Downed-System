@@ -271,5 +271,10 @@ hook.Add("PlayerSpawn", "HSR_ps", function(ply, _)
 		ply:UnSpectate()
 		downed_ragdoll:Remove()
 		ply:SetNWEntity("downed_ragdoll", nil)
+
+		ply:DrawViewModel(true)
+		ply:SetNoDraw(false)
+		ply:SetNoTarget(false)
+		ply:SetNotSolid(false)
 	end
 end)

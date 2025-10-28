@@ -290,9 +290,14 @@ end)
 
 hook.Add("EntityTakeDamage", "HSR_etd", function(rag, dmgInfo)
 	local ply = rag:GetNWEntity("owner")
-
 	if not IsValid(ply) or not ply:Alive() then return end
-	if CurTime() - rag:GetNWFloat("bleedOutStartTime") < 2 and (dmgInfo:GetDamageType() == DMG_FALL or dmgInfo:GetDamageType() == DMG_CRUSH) then return end
+
+	local dmgType = dmgInfo:GetDamageType()
+	if CurTime() - rag:GetNWFloat("bleedOutStartTime") < 2 and dmgType == DMG_CRUSH then return end
+
+	if dmgType == DMG_CRUSH then
+        dmgInfo:ScaleDamage(0.02)
+    end
 
 	local physBone = HSR.getPhysicsBoneDamageInfo(rag, dmgInfo)
 	local boneName = rag:GetBoneName(rag:TranslatePhysBoneToBone(physBone))

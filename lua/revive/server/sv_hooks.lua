@@ -277,7 +277,12 @@ hook.Add("Think", "HSR_npc_reviving", function()
 	end
 
 	for ply, npc in pairs(assignedNPCs) do
-		if not IsValid(ply) or not IsValid(npc) or not ply:GetNWBool("downed") then
+		if not IsValid(ply) or not IsValid(npc) then
+			assignedNPCs[ply] = nil
+			continue
+		end
+
+		if not ply:GetNWBool("downed") then
 			assignedNPCs[ply] = nil
 		end
 	end

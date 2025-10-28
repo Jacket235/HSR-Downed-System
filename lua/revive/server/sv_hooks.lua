@@ -24,15 +24,18 @@ hook.Add("PlayerHurt", "HSR_ph", function(ply, atkr, hp, dmg)
 	end
 end)
 
-hook.Add("OnEntityCreated", "HSR_target_bullseye", function(ent)
-	timer.Simple(1, function()
-		if not IsValid(ent) then return end
-		if ent:GetClass() == "npc_bullseye" then
-			HSR.setupBullseyeRelationship(ent)
-		elseif ent:IsNPC() then	
-			HSR.updateBullseyeRelationship(ent)
-		end
-	end)
+hook.Add("OnEntityCreated", "HSR_target_bullseye", function(ent) 
+	if ent:GetClass() != "npc_bullseye" then return end 
+
+	timer.Simple(1, function() 
+		if not IsValid(ent) then return end 
+		if ent:IsNPC() then 
+			HSR.updateBullseyeRelationship(ent) 
+			return 
+		end 
+
+		HSR.setupBullseyeRelationship(ent) 
+	end) 
 end)
 
 hook.Add("Think", "HSR_bleed_out", function()
@@ -178,7 +181,7 @@ hook.Add("Think", "HSR_reviving", function()
 	for ply, rag in pairs(HSR.downedPlayers) do
 		local savior = rag:GetNWEntity("savior")
 
-		if IsValid(savior) then
+		if IsValid(savior) and not savior:IsNPC() then
 			if not savior:KeyDown(IN_USE) then
 				rag:SetNWEntity("savior", NULL)
 				rag:SetNWFloat("reviveStartTime", CurTime())
@@ -197,6 +200,85 @@ hook.Add("Think", "HSR_reviving", function()
 				    net.WriteEntity(ply)        
 				net.Send(player.GetAll())		
 			end
+		end
+	end
+end)
+
+local nextNPCCheck = 0
+local assignedNPCs = {}
+
+hook.Add("Think", "HSR_npc_reviving", function()
+	if GetConVar("hsr_npc_allowed_revive"):GetInt() <= 0 then return end
+	if table.IsEmpty(HSR.downedPlayers) then return end
+	if CurTime() < nextNPCCheck then return end
+	nextNPCCheck = CurTime() + 1
+
+	local maxNPCSearchRadius = GetConVar("hsr_ragdoll_npc_search_radius"):GetInt()
+	local reviveDistance = GetConVar("hsr_ragdoll_npc_revive_radius"):GetInt()
+	
+	// Find a downed player to help
+	for ply, rag in pairs(HSR.downedPlayers) do
+		if not IsValid(rag) or not ply:GetNWBool("downed") then continue end
+
+		local npcSavior = assignedNPCs[ply]
+		if IsValid(npcSavior) then
+			local dist = npcSavior:GetPos():DistToSqr(rag:GetPos())
+
+			if dist <= reviveDistance * reviveDistance then
+				local revive_time = GetConVar("hsr_ragdoll_revive_time"):GetInt()
+
+				if not npcSavior.isReviving then
+					rag:SetNWEntity("savior", npcSavior)
+					rag:SetNWFloat("reviveStartTime", CurTime())
+					npcSavior.isReviving = true
+				end
+
+				local elapsedTime = CurTime() - rag:GetNWFloat("reviveStartTime", CurTime())
+
+				if npcSavior.isReviving and elapsedTime >= revive_time then
+					HSR.revivePlayer(ply)
+
+					HSR.downedPlayers[ply] = nil
+					npcSavior.isReviving = false
+					assignedNPCs[ply] = nil
+					net.Start("downedPlayerLocation")
+					    net.WriteEntity(NULL)       
+					    net.WriteEntity(ply)        
+					net.Send(player.GetAll())		
+				end
+			end
+
+			npcSavior:SetLastPosition(rag:GetPos())
+			npcSavior:SetSchedule(SCHED_FORCED_GO_RUN)
+
+			continue 
+		end
+
+		// Find a suitable NPC
+		for _, npc in ipairs(ents.FindByClass("npc_*")) do
+			if not IsValid(npc) then continue end
+			if npc:HasCondition(COND.SEE_ENEMY) or npc:HasCondition(COND.HEAVY_DAMAGE) then continue end
+			if npc:GetClass() == "npc_bullseye" then continue end
+
+			local disp = npc:Disposition(ply)
+
+			if disp != D_LI and disp != D_NU then continue end
+
+			if npc:GetPos():DistToSqr(rag:GetPos()) > maxNPCSearchRadius * maxNPCSearchRadius then continue end
+
+			npc.reviveTarget = rag
+			assignedNPCs[ply] = npc
+
+			npc:SetLastPosition(rag:GetPos())
+			npc:SetSchedule(SCHED_FORCED_GO_RUN)
+
+			break
+		end
+	end
+
+	for ply, npc in pairs(assignedNPCs) do
+		if not IsValid(ply) or not IsValid(npc) or not ply:GetNWBool("downed") then
+			assignedNPCs[ply] = nil
 		end
 	end
 end)

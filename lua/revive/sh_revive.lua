@@ -4,6 +4,9 @@ HSR.downedPlayers = {}
 CreateConVar("hsr_ragdoll_bleed_out_time", "30", { FCVAR_REPLICATED, FCVAR_ARCHIVE }, "How long the ragdoll will bleed out for")
 CreateConVar("hsr_ragdoll_give_up_time", "1", { FCVAR_REPLICATED, FCVAR_ARCHIVE }, "How long it takes to give up")
 CreateConVar("hsr_ragdoll_revive_time", "4", { FCVAR_REPLICATED, FCVAR_ARCHIVE}, "How long it takes to revive someone")
+CreateConVar("hsr_npc_allowed_revive", "1", { FCVAR_REPLICATED, FCVAR_ARCHIVE}, "Are NPCs allowed to revive you")
+CreateConVar("hsr_ragdoll_npc_search_radius", "500", { FCVAR_REPLICATED, FCVAR_ARCHIVE}, "Maximum distance for NPCs to come to you")
+CreateConVar("hsr_ragdoll_npc_revive_radius", "60", { FCVAR_REPLICATED, FCVAR_ARCHIVE}, "At what distance do the NPCs actually start reviving you")
 
 HSR.boneToHitGroup = { 
     ["ValveBiped.Bip01_Head1"] = 1,

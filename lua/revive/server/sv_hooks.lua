@@ -25,22 +25,13 @@ hook.Add("PlayerHurt", "HSR_ph", function(ply, atkr, hp, dmg)
 end)
 
 hook.Add("OnEntityCreated", "HSR_target_bullseye", function(ent)
-	if ent:GetClass() ~= "npc_bullseye" then return end
-	timer.Simple(0, function()
-		if not IsValid(ent:GetParent():GetNWEntity("owner")) then return end
+	timer.Simple(1, function()
 		if not IsValid(ent) then return end
-
-		for _, npc in pairs(ents.FindByClass("npc_*")) do
-			if npc.AddEntityRelationship then
-				local disp = npc:Disposition(ent:GetParent():GetNWEntity("owner"))
-
-				if disp == D_HT or disp == D_FR then
-			        npc:AddEntityRelationship(ent, D_HT, 0)
-			        npc:SetNPCState(NPC_STATE_COMBAT)
-			        npc:SetEnemy(ent)
-			    end
-		    end
-	    end
+		if ent:GetClass() == "npc_bullseye" then
+			HSR.setupBullseyeRelationship(ent)
+		elseif ent:IsNPC() then	
+			HSR.updateBullseyeRelationship(ent)
+		end
 	end)
 end)
 

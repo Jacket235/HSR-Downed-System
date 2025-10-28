@@ -149,6 +149,47 @@ function HSR.revivePlayer(ply)
     HSR.downedPlayers[ply] = nil
 end
 
+function HSR.setupBullseyeRelationship(bullseye)
+	if not IsValid(bullseye) then return end
+	if bullseye:GetClass() != "npc_bullseye" then return end
+
+	local parent = bullseye:GetParent()
+	if not IsValid(parent) then return end
+
+	local owner = parent:GetNWEntity("owner")
+	if not IsValid(owner) then return end
+
+	for _, npc in ipairs(ents.FindByClass("npc_*")) do
+		if not npc.AddEntityRelationship then continue end
+
+		local disp = npc:Disposition(owner)
+		if disp == D_HT or disp == D_FR then
+			npc:AddEntityRelationship(bullseye, D_HT, 0)
+			npc:SetNPCState(NPC_STATE_COMBAT)
+			npc:SetEnemy(bullseye)
+		end
+	end
+end
+
+function HSR.updateBullseyeRelationship(npc)
+	if not IsValid(npc) or not npc.AddEntityRelationship then return end
+
+	for _, bullseye in ipairs(ents.FindByClass("npc_bullseye")) do
+		local parent = bullseye:GetParent()
+		if not IsValid(parent) then continue end
+
+		local owner = parent:GetNWEntity("owner")
+		if not IsValid(owner) then continue end
+
+		local disp = npc:Disposition(owner)
+		if disp == D_HT or disp == D_FR then
+			npc:AddEntityRelationship(bullseye, D_HT, 0)
+			npc:SetNPCState(NPC_STATE_COMBAT)
+			npc:SetEnemy(bullseye)
+		end
+	end
+end
+
 function HSR.getPhysicsBoneDamageInfo(ent, dmgInfo)
     -- Get the position where the damage occurred
     local pos = dmgInfo:GetDamagePosition()

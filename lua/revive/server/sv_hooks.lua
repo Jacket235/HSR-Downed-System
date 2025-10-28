@@ -257,6 +257,7 @@ hook.Add("Think", "HSR_npc_reviving", function()
 		// Find a suitable NPC
 		for _, npc in ipairs(ents.FindByClass("npc_*")) do
 			if not IsValid(npc) then continue end
+			if not npc.HasCondition then continue end
 			if npc:HasCondition(COND.SEE_ENEMY) or npc:HasCondition(COND.HEAVY_DAMAGE) then continue end
 			if npc:GetClass() == "npc_bullseye" then continue end
 

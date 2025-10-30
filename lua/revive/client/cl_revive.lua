@@ -226,7 +226,7 @@ hook.Add("PostDrawOpaqueRenderables", "draw_downed_players_icons", function()
             surface.SetMaterial(health_icon) 
             surface.DrawTexturedRect(-32, -32, 64, 64)
 
-            draw.SimpleText(ply:Nick(), "plyNickFont", 0, -110, Color(255, 255, 255, 255), TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER) 
+            draw.SimpleTextOutlined(ply:Nick(), "plyNickFont", 0, -110, Color(255, 255, 255, 255), TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER, 3, Color(0, 0, 0, 255)) 
         cam.End3D2D()
         cam.IgnoreZ(false)
     end

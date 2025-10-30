@@ -122,7 +122,7 @@ hook.Add("Think", "HSR_ragdoll_control", function()
         local springStrength = 15     -- weak pull
         local damping = 9             -- strong slowdown
 
-		if ply:KeyDown(IN_ATTACK) and downed_ragdoll.LeftHandPhys then
+		if ply:KeyDown(IN_ATTACK) then
 			local phys = downed_ragdoll:GetPhysicsObjectNum(downed_ragdoll.LeftHandPhys)
 			if not IsValid(phys) then continue end
 
@@ -177,6 +177,22 @@ hook.Add("Think", "HSR_reviving", function()
 	if table.IsEmpty(HSR.downedPlayers) then return end
  
 	for ply, rag in pairs(HSR.downedPlayers) do
+		if not IsValid(ply) or not IsValid(rag) then
+			if IsValid(rag) then rag:Remove() end
+			if IsValid(ply) then 
+				ply:Kill() 
+				ply:SetNWBool("downed", false) 
+			end
+			
+			HSR.downedPlayers[ply] = nil
+			net.Start("downedPlayerLocation")
+			    net.WriteEntity(NULL)       
+			    net.WriteEntity(ply)        
+			net.Send(player.GetAll())
+
+			continue
+		end
+
 		local savior = rag:GetNWEntity("savior")
 
 		if IsValid(savior) and not savior:IsNPC() then

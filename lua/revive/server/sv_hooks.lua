@@ -24,18 +24,16 @@ hook.Add("PlayerHurt", "HSR_ph", function(ply, atkr, hp, dmg)
 	end
 end)
 
-hook.Add("OnEntityCreated", "HSR_target_bullseye", function(ent) 
-	if ent:GetClass() != "npc_bullseye" then return end 
-
-	timer.Simple(1, function() 
-		if not IsValid(ent) then return end 
-		if ent:IsNPC() then 
-			HSR.updateBullseyeRelationship(ent) 
-			return 
-		end 
-
-		HSR.setupBullseyeRelationship(ent) 
-	end) 
+hook.Add("OnEntityCreated", "HSR_target_bullseye", function(ent)
+	timer.Simple(1, function()
+		if not IsValid(ent) then return end
+		
+		if ent:GetClass() == "npc_bullseye" then
+			HSR.setupBullseyeRelationship(ent)
+		elseif ent:IsNPC() then	
+			HSR.updateBullseyeRelationship(ent)
+		end
+	end)
 end)
 
 hook.Add("Think", "HSR_bleed_out", function()

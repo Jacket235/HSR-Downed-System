@@ -101,7 +101,7 @@ hook.Add("Think", "HSR_ragdoll_control", function()
 			net.Start("downedPlayerLocation")
 			    net.WriteEntity(NULL)       
 			    net.WriteEntity(ply)        
-			net.Send(player.GetAll())
+			net.Broadcast()
 
 			continue
 		end
@@ -169,7 +169,7 @@ hook.Add("Think", "HSR_ragdoll_control", function()
 		net.Start("downedPlayerLocation")
 			net.WriteEntity(rag)
 			net.WriteEntity(ply)
-		net.Send(player.GetAll())
+		net.Broadcast()
 	end
 end)
 
@@ -188,7 +188,7 @@ hook.Add("Think", "HSR_reviving", function()
 			net.Start("downedPlayerLocation")
 			    net.WriteEntity(NULL)       
 			    net.WriteEntity(ply)        
-			net.Send(player.GetAll())
+			net.Broadcast()
 
 			continue
 		end
@@ -212,7 +212,7 @@ hook.Add("Think", "HSR_reviving", function()
 				net.Start("downedPlayerLocation")
 				    net.WriteEntity(NULL)       
 				    net.WriteEntity(ply)        
-				net.Send(player.GetAll())		
+				net.Broadcast()		
 			end
 		end
 	end
@@ -258,7 +258,7 @@ hook.Add("Think", "HSR_npc_reviving", function()
 					net.Start("downedPlayerLocation")
 					    net.WriteEntity(NULL)       
 					    net.WriteEntity(ply)        
-					net.Send(player.GetAll())		
+					net.Broadcast()		
 				end
 			end
 
@@ -325,19 +325,16 @@ hook.Add("EntityTakeDamage", "HSR_etd", function(rag, dmgInfo)
 end)
 
 hook.Add("PlayerUse", "HSR_pu", function(user, ent)
-	if ent:GetNWEntity("owner") and ent:GetClass() == "prop_ragdoll" then
-		local plyDowned = ent:GetNWEntity("owner")
+	if not IsValid(ent) or ent:GetClass() != "prop_ragdoll" then return end
+	local plyDowned = ent:GetNWEntity("owner")
+	if not IsValid(plyDowned) then return end
 
-		for ply, rag in pairs(HSR.downedPlayers) do
-			if ent == rag then
-				if IsValid(rag:GetNWEntity("savior")) then continue end
-				if ply != plyDowned then continue end
+	local rag = HSR.downedPlayers[plyDowned]
+	if rag != ent then return end
 
-				rag:SetNWEntity("savior", user)
-				rag:SetNWFloat("reviveStartTime", CurTime())
-			end
-		end
-	end
+	if IsValid(rag:GetNWEntity("savior")) then return end
+	rag:SetNWEntity("savior", user)
+	rag:SetNWFloat("reviveStartTime", CurTime())
 end)
 
 hook.Add("PlayerDeath", "HSR_pd", function(ply, _, atkr)
@@ -358,7 +355,7 @@ hook.Add("PlayerDeath", "HSR_pd", function(ply, _, atkr)
         net.Start("downedPlayerLocation")
 		    net.WriteEntity(NULL)      
 		    net.WriteEntity(ply)       
-		net.Send(player.GetAll())
+		net.Broadcast()
 	end
 end)
 

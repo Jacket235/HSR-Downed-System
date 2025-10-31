@@ -193,6 +193,31 @@ function HSR.updateBullseyeRelationship(npc)
 	end
 end
 
+local SPRING = 15
+local DAMPING = 9
+local FORCE_CLAMP = 120
+
+function HSR.applyForce(phys, trace)
+	if not IsValid(phys) then return end
+
+    local targetPos = trace.HitPos
+    local currentPos = phys:GetPos()
+    local dir = targetPos - currentPos
+	local dist = dir:Length()
+    
+    dir:Normalize()
+    local vel = phys:GetVelocity()
+    
+    local force = dir * dist * SPRING - vel * DAMPING
+
+    -- clamp force so it can’t drag the body
+    force.x = math.Clamp(force.x, -FORCE_CLAMP, FORCE_CLAMP)
+    force.y = math.Clamp(force.y, -FORCE_CLAMP, FORCE_CLAMP)
+    force.z = math.Clamp(force.z, -FORCE_CLAMP, FORCE_CLAMP)
+
+    phys:ApplyForceCenter(force)
+end
+
 function HSR.getPhysicsBoneDamageInfo(ent, dmgInfo)
     -- Get the position where the damage occurred
     local pos = dmgInfo:GetDamagePosition()

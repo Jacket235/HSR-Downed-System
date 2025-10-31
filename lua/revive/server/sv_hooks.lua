@@ -107,63 +107,31 @@ hook.Add("Think", "HSR_ragdoll_control", function()
 		end
 		if not ply:GetNWBool("downed") or not IsValid(ply:GetNWEntity("downed_ragdoll")) then continue end
 
-		local downed_ragdoll = rag
+		local headAttachment = rag.cachedEyeAttachment
+		if not headAttachment then
+			headAttachment = rag:LookupAttachment("eyes")
+            rag.cachedEyeAttachment = headAttachment
+		end
 
-		local headIndex = downed_ragdoll:LookupAttachment("eyes")
-		local head = downed_ragdoll:GetAttachment(headIndex)
+		local head = rag:GetAttachment(headAttachment)
+		if not head then continue end
 
+		local startPos = head.Pos
+		local endPos = ply:EyeAngles():Forward()
 		local trace = util.TraceLine({
-			start = head.Pos,
-			endpos = head.Pos + ply:EyeAngles():Forward() * 150,
-			filter = { ply, downed_ragdoll }
+			start = startPos,
+			endpos = startPos + endPos * 150,
+			filter = { ply, rag }
 		})
 
-		-- weak arm settings (injured feel)
-        local springStrength = 15     -- weak pull
-        local damping = 9             -- strong slowdown
-
 		if ply:KeyDown(IN_ATTACK) then
-			local phys = downed_ragdoll:GetPhysicsObjectNum(downed_ragdoll.LeftHandPhys)
-			if not IsValid(phys) then continue end
-
-            local targetPos = trace.HitPos
-            local currentPos = phys:GetPos()
-            local dir = targetPos - currentPos
-
-            local dist = dir:Length()
-            dir:Normalize()
-
-            local vel = phys:GetVelocity()
-            local force = dir * dist * springStrength - vel * damping
-
-            -- clamp force so it can’t drag the body
-            force.x = math.Clamp(force.x, -120, 120)
-            force.y = math.Clamp(force.y, -120, 120)
-            force.z = math.Clamp(force.z, -120, 120)
-
-            phys:ApplyForceCenter(force)
+			local phys = rag:GetPhysicsObjectNum(rag.LeftHandPhys)
+			HSR.applyForce(phys, trace)
 		end
 
 		if ply:KeyDown(IN_ATTACK2) then
-			local phys = downed_ragdoll:GetPhysicsObjectNum(downed_ragdoll.RightHandPhys)
-			if not IsValid(phys) then continue end
-
-            local targetPos = trace.HitPos
-            local currentPos = phys:GetPos()
-            local dir = targetPos - currentPos
-
-            local dist = dir:Length()
-            dir:Normalize()
-
-            local vel = phys:GetVelocity()
-            local force = dir * dist * springStrength - vel * damping
-
-            -- clamp force so it can’t drag the body
-            force.x = math.Clamp(force.x, -120, 120)
-            force.y = math.Clamp(force.y, -120, 120)
-            force.z = math.Clamp(force.z, -120, 120)
-
-            phys:ApplyForceCenter(force)
+			local phys = rag:GetPhysicsObjectNum(rag.RightHandPhys)
+			HSR.applyForce(phys, trace)
 		end
 
 		net.Start("downedPlayerLocation")
@@ -304,6 +272,8 @@ hook.Add("Think", "HSR_npc_reviving", function()
 end)
 
 hook.Add("EntityTakeDamage", "HSR_etd", function(rag, dmgInfo)
+	if not IsValid(rag) then return end
+
 	local ply = rag:GetNWEntity("owner")
 	if not IsValid(ply) or not ply:Alive() then return end
 
@@ -319,7 +289,7 @@ hook.Add("EntityTakeDamage", "HSR_etd", function(rag, dmgInfo)
 	local hitGroup = HSR.boneToHitGroup[boneName]
 	local multiplier = HSR.ragdollDamageBoneMultiplier[hitGroup]
 
-	if rag and multiplier then dmgInfo:ScaleDamage(multiplier) end
+	if multiplier then dmgInfo:ScaleDamage(multiplier) end
 
 	ply:TakeDamageInfo(dmgInfo)
 end)

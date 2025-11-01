@@ -132,6 +132,7 @@ end
 function HSR.revivePlayer(ply)
 	local downed_ragdoll = ply:GetNWEntity("downed_ragdoll")
 	local ragdollPos = downed_ragdoll:GetPhysicsObject():GetPos()
+	local eyeAngles = ply:EyeAngles()
 
 	ply:UnSpectate()
 	ply:Spawn()
@@ -139,6 +140,7 @@ function HSR.revivePlayer(ply)
 	ply:StripWeapons()
 	ply:StripAmmo()
 	ply:SetPos(ragdollPos)
+	ply:SetEyeAngles(eyeAngles)
 
 	for _, weaponInfo in pairs(downed_ragdoll.weapons or {}) do
         local weapon = ply:Give(weaponInfo.class)

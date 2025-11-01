@@ -173,10 +173,11 @@ hook.Add("PostDrawOpaqueRenderables", "draw_downed_players_icons", function()
 
     local bleed_out_time = GetConVar("hsr_ragdoll_bleed_out_time"):GetInt()
     local revive_time = GetConVar("hsr_ragdoll_revive_time"):GetInt()
+    local maxIndicatorDistance = GetConVar("hsr_indicator_max_distance"):GetInt()
 
     local lp = LocalPlayer()
     local eyepos = EyePos()
-    local maxDist = 4000
+    local maxDist = maxIndicatorDistance
     local maxDistSqr = maxDist * maxDist
 
     for ply, rag in pairs(downedPlayers) do

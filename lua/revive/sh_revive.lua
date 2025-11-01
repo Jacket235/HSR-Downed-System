@@ -4,6 +4,7 @@ HSR.downedPlayers = {}
 CreateConVar("hsr_ragdoll_bleed_out_time", "30", { FCVAR_REPLICATED, FCVAR_ARCHIVE }, "How long the ragdoll will bleed out for")
 CreateConVar("hsr_ragdoll_give_up_time", "1", { FCVAR_REPLICATED, FCVAR_ARCHIVE }, "How long it takes to give up")
 CreateConVar("hsr_ragdoll_revive_time", "4", { FCVAR_REPLICATED, FCVAR_ARCHIVE}, "How long it takes to revive someone")
+CreateConVar("hsr_indicator_max_distance", "4000", { FCVAR_REPLICATED, FCVAR_ARCHIVE}, "From how far away can downed indicators be seen")
 CreateConVar("hsr_npc_allowed_revive", "1", { FCVAR_REPLICATED, FCVAR_ARCHIVE}, "Are NPCs allowed to revive you")
 CreateConVar("hsr_ragdoll_npc_search_radius", "500", { FCVAR_REPLICATED, FCVAR_ARCHIVE}, "Maximum distance for NPCs to come to you")
 CreateConVar("hsr_ragdoll_npc_revive_radius", "60", { FCVAR_REPLICATED, FCVAR_ARCHIVE}, "At what distance do the NPCs actually start reviving you")
@@ -53,7 +54,6 @@ function HSR.createDownedRagdoll(ply)
 	ragdoll:Spawn()
 	ragdoll:Activate()
 
-	-- -- Copy all bodygroups
 	for i = 0, ply:GetNumBodyGroups() - 1 do
 	    ragdoll:SetBodygroup(i, ply:GetBodygroup(i))
 	end

@@ -49,8 +49,15 @@ function HSR.createDownedRagdoll(ply)
 	ragdoll:SetAngles(ply:GetAngles())
 	ragdoll:SetNWVector("rag_ply_color", ply:GetPlayerColor())
 	ragdoll:SetCollisionGroup(COLLISION_GROUP_WEAPON)
+	ragdoll:SetSkin(ply:GetSkin())
 	ragdoll:Spawn()
 	ragdoll:Activate()
+
+	-- -- Copy all bodygroups
+	for i = 0, ply:GetNumBodyGroups() - 1 do
+	    ragdoll:SetBodygroup(i, ply:GetBodygroup(i))
+	end
+
     local vel = ply:GetVelocity()/1 + (force or Vector(0,0,0))
 	for i = 0, ragdoll:GetPhysicsObjectCount() - 1 do
 		local physobj = ragdoll:GetPhysicsObjectNum( i )

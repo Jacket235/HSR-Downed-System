@@ -5,6 +5,7 @@ include("revive/sh_revive.lua")
 hook.Add("PlayerHurt", "HSR_ph", function(ply, atkr, hp, dmg)
 	if not ply:GetNWBool("downed") and hp <= 0  then 
 		ply:SetHealth(100)
+		if ply:InVehicle() then ply:ExitVehicle() end
 
 		local ragdoll = HSR.createDownedRagdoll(ply)
 		if not IsValid(atkr) or atkr:IsWorld() or atkr == ply then

@@ -22,7 +22,7 @@ hook.Add("PlayerHurt", "HSR_ph", function(ply, atkr, hp, dmg)
 		local controller = HSR.createRagdollBullseye(ply, ragdoll)
 		HSR.downedPlayers[ply] = ragdoll
 
-		timer.Simple(0, function()
+		timer.Simple(.1, function()
 			if not IsValid(ragdoll) then return end
 			
 			net.Start("downedPlayerLocation")

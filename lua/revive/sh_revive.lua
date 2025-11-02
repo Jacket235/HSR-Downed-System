@@ -47,7 +47,7 @@ HSR.ragdollDamageBoneMultiplier = {
 
 function HSR.createDownedRagdoll(ply)
 	local ragdoll = ents.Create("prop_ragdoll")
-	ragdoll:SetNWFloat("bleedOutStartTime", CurTime())
+	ragdoll:SetNWFloat("bleedOutStartTime", CurTime() + .1)
 	ragdoll:SetModel(ply:GetModel())
 	ragdoll:SetPos(ply:GetPos())
 	ragdoll:SetAngles(ply:GetAngles())

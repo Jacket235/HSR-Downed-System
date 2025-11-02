@@ -181,7 +181,7 @@ hook.Add("PostDrawOpaqueRenderables", "draw_downed_players_icons", function()
     local maxDistSqr = maxDist * maxDist
 
     for ply, rag in pairs(downedPlayers) do
-        if not IsValid(rag) or not IsValid(ply) then continue end
+        if not IsValid(rag) or not IsValid(ply) or not ply:Alive() then continue end
         if ply == LocalPlayer() then continue end
         if eyepos:DistToSqr(rag:GetPos()) > maxDistSqr then continue end
 

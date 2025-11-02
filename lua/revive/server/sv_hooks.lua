@@ -19,9 +19,17 @@ hook.Add("PlayerHurt", "HSR_ph", function(ply, atkr, hp, dmg)
 		HSR.storeBones(ragdoll, ply)
 		HSR.storeWeapons(ragdoll, ply)
 
-
 		local controller = HSR.createRagdollBullseye(ply, ragdoll)
 		HSR.downedPlayers[ply] = ragdoll
+
+		timer.Simple(0, function()
+			if not IsValid(ragdoll) then return end
+			
+			net.Start("downedPlayerLocation")
+				net.WriteEntity(ragdoll)
+				net.WriteEntity(ply)
+			net.Broadcast()
+		end)
 	end
 end)
 
@@ -134,11 +142,6 @@ hook.Add("Think", "HSR_ragdoll_control", function()
 			local phys = rag:GetPhysicsObjectNum(rag.RightHandPhys)
 			HSR.applyForce(phys, trace)
 		end
-
-		net.Start("downedPlayerLocation")
-			net.WriteEntity(rag)
-			net.WriteEntity(ply)
-		net.Broadcast()
 	end
 end)
 
@@ -358,6 +361,6 @@ hook.Add("PlayerSpawn", "HSR_ps", function(ply, _)
 	end
 end)
 
-hook.Add("PlayerCanPickupWeapon", "HSR_no_pickup_while_downed", function(ply, weapon)
+hook.Add( "PlayerCanPickupWeapon", "HSR_no_pickup_while_downed", function(ply, weapon)
 	if ply:GetNWBool("downed") then return false end
 end)

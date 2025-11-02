@@ -164,13 +164,26 @@ hook.Add("Think", "HSR_reviving", function()
 		local savior = rag:GetNWEntity("savior")
 
 		if IsValid(savior) and not savior:IsNPC() then
+			-- Drag logic
+			if GetConVar("hsr_ragdoll_drag_allowed"):GetInt() > 0 then
+				local dragForce = GetConVar("hsr_ragdoll_drag_force"):GetInt()
+				if savior:KeyDown(IN_USE) then
+					local forward = savior:GetForward()
+					local targetPos = savior:GetPos() + forward * 40 + Vector(0,0,10)
+					local phys = rag:GetPhysicsObject()
+					if IsValid(phys) then
+						phys:SetVelocity((targetPos - rag:GetPos()) * dragForce)
+					end
+				end
+			end
+
+			-- Revive logic
 			if not savior:KeyDown(IN_USE) then
 				rag:SetNWEntity("savior", NULL)
 				rag:SetNWFloat("reviveStartTime", CurTime())
 			end
 
 			local revive_time = GetConVar("hsr_ragdoll_revive_time"):GetInt()
-
 			local elapsedTime = CurTime() - rag:GetNWFloat("reviveStartTime") 
 
 			if elapsedTime >= revive_time then 
@@ -190,7 +203,7 @@ local nextNPCCheck = 0
 local assignedNPCs = {}
 
 hook.Add("Think", "HSR_npc_reviving", function()
-	if GetConVar("hsr_npc_allowed_revive"):GetInt() <= 0 then return end
+	if GetConVar("hsr_npc_revive_allowed"):GetInt() <= 0 then return end
 	if table.IsEmpty(HSR.downedPlayers) then return end
 	if CurTime() < nextNPCCheck then return end
 	nextNPCCheck = CurTime() + 1

@@ -357,3 +357,7 @@ hook.Add("PlayerSpawn", "HSR_ps", function(ply, _)
 		ply:SetNotSolid(false)
 	end
 end)
+
+hook.Add("PlayerCanPickupWeapon", "HSR_no_pickup_while_downed", function(ply, weapon)
+	if ply:GetNWBool("downed") then return false end
+end)

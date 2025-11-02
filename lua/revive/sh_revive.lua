@@ -137,6 +137,8 @@ function HSR.revivePlayer(ply)
 	local ragdollPos = downed_ragdoll:GetPhysicsObject():GetPos()
 	local eyeAngles = ply:EyeAngles()
 
+	ply:SetNWBool("downed", false)
+
 	ply:UnSpectate()
 	ply:Spawn()
 	ply:SetHealth(ply:GetMaxHealth() * .3)
@@ -158,8 +160,7 @@ function HSR.revivePlayer(ply)
             ply:SetAmmo(weaponInfo.secondaryAmmo, secondaryType)
         end
     end
-
-    ply:SetNWBool("downed", false)
+   
     ply:SetNWEntity("downed_ragdoll", nil)
     HSR.downedPlayers[ply] = nil
 end

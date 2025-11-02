@@ -320,6 +320,7 @@ hook.Add("PlayerUse", "HSR_pu", function(user, ent)
 	if rag != ent then return end
 
 	if IsValid(rag:GetNWEntity("savior")) then return end
+	if user == plyDowned then return end
 	rag:SetNWEntity("savior", user)
 	rag:SetNWFloat("reviveStartTime", CurTime())
 end)
@@ -361,6 +362,10 @@ hook.Add("PlayerSpawn", "HSR_ps", function(ply, _)
 	end
 end)
 
-hook.Add( "PlayerCanPickupWeapon", "HSR_no_pickup_while_downed", function(ply, weapon)
+hook.Add( "PlayerCanPickupWeapon", "HSR_no_pickup_while_downed", function(ply, _)
 	if ply:GetNWBool("downed") then return false end
+end)
+
+hook.Add("CanPlayerEnterVehicle", "PrintPlayersInVehicles", function(ply, _, _)
+	if ply:GetNWBool("downed") then return false end 
 end)

@@ -344,6 +344,14 @@ hook.Add("PlayerDeath", "HSR_pd", function(ply, _, atkr)
 		    net.WriteEntity(NULL)      
 		    net.WriteEntity(ply)       
 		net.Broadcast()
+
+		for _, npc in ipairs(ents.FindByClass("npc_*")) do
+			if not IsValid(npc) or not npc:IsNPC() then continue end
+			
+			if npc:GetEnemy() == downed_ragdoll.bullseye then
+				npc:AddEntityRelationship(downed_ragdoll.bullseye, D_NU, 0)
+			end
+		end
 	end
 end)
 

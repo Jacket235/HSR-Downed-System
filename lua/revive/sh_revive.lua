@@ -174,6 +174,7 @@ function HSR.setupBullseyeRelationship(bullseye)
 
 	local owner = parent:GetNWEntity("owner")
 	if not IsValid(owner) then return end
+	if not owner:Alive() then return end
 
 	for _, npc in ipairs(ents.FindByClass("npc_*")) do
 		if not npc.AddEntityRelationship then continue end
@@ -196,6 +197,7 @@ function HSR.updateBullseyeRelationship(npc)
 
 		local owner = parent:GetNWEntity("owner")
 		if not IsValid(owner) then continue end
+		if not owner:Alive() then return end
 
 		local disp = npc:Disposition(owner)
 		if disp == D_HT or disp == D_FR then

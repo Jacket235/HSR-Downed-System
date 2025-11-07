@@ -68,12 +68,6 @@ function draw.JRing(PositionX, PositionY, Radius, Thickness, StartAng, EndAng)
     render.SetStencilEnable(false)
 end
 
-local EntityMeta = FindMetaTable("Entity")
-
-function EntityMeta:GetPlayerColor()
-    return self:GetNWVector("rag_ply_color") or Vector()
-end
-
 hook.Add("OnScreenSizeChanged", "abcdefghijklmnopqrstuvwxyz", function()
     createFont()
 end)
@@ -231,6 +225,17 @@ hook.Add("PostDrawOpaqueRenderables", "draw_downed_players_icons", function()
         cam.End3D2D()
         cam.IgnoreZ(false)
     end
+end)
+
+hook.Add("OnEntityCreated", "apply_colour_to_ragdoll", function(ent)
+    if not IsValid(ent) then return end
+    if ent:GetClass() != "prop_ragdoll" then return end
+
+    timer.Simple(0, function()
+        ent.GetPlayerColor = function ()
+            return ent:GetNWVector("rag_ply_color", Vector(0, 0, 0))
+        end
+    end)
 end)
 
 net.Receive("downedPlayerLocation", function()

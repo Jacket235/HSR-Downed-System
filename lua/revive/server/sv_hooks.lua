@@ -4,7 +4,7 @@ include("revive/sh_revive.lua")
 
 hook.Add("PlayerHurt", "HSR_ph", function(ply, atkr, hp, dmg)
 	if not ply:GetNWBool("downed") and hp <= 0  then 
-		ply:SetHealth(100)
+		ply:SetHealth(ply:GetMaxHealth())
 		if ply:InVehicle() then ply:ExitVehicle() end
 
 		local ragdoll = HSR.createDownedRagdoll(ply)
@@ -288,21 +288,21 @@ hook.Add("Think", "HSR_npc_reviving", function()
 	end
 end)
 
-hook.Add("EntityTakeDamage", "HSR_etd", function(rag, dmgInfo)
-	if not IsValid(rag) then return end
+hook.Add("EntityTakeDamage", "HSR_etd", function(ent, dmgInfo)
+	if not IsValid(ent) then return end
 
-	local ply = rag:GetNWEntity("owner")
+	local ply = ent:GetNWEntity("owner")
 	if not IsValid(ply) or not ply:Alive() then return end
 
 	local dmgType = dmgInfo:GetDamageType()
-	if CurTime() - rag:GetNWFloat("bleedOutStartTime") < 2 and dmgType == DMG_CRUSH then return end
+	if CurTime() - ent:GetNWFloat("bleedOutStartTime") < 2 and dmgType == DMG_CRUSH then return end
 
 	if dmgType == DMG_CRUSH then
         dmgInfo:ScaleDamage(0.02)
     end
 
-	local physBone = HSR.getPhysicsBoneDamageInfo(rag, dmgInfo)
-	local boneName = rag:GetBoneName(rag:TranslatePhysBoneToBone(physBone))
+	local physBone = HSR.getPhysicsBoneDamageInfo(ent, dmgInfo)
+	local boneName = ent:GetBoneName(ent:TranslatePhysBoneToBone(physBone))
 	local hitGroup = HSR.boneToHitGroup[boneName]
 	local multiplier = HSR.ragdollDamageBoneMultiplier[hitGroup]
 

@@ -56,6 +56,7 @@ function HSR.createDownedRagdoll(ply)
 	ragdoll:SetSkin(ply:GetSkin())
 	ragdoll:Spawn()
 	ragdoll:Activate()
+	ragdoll:GetPhysicsObject():SetMass(12.775918006897)
 
 	for i = 0, ply:GetNumBodyGroups() - 1 do
 	    ragdoll:SetBodygroup(i, ply:GetBodygroup(i))
@@ -87,6 +88,7 @@ function HSR.createDownedRagdoll(ply)
 	ply:SetNoTarget(true)
 	ply:SetMoveType(MOVETYPE_NONE)
 	ply:SetLocalVelocity(Vector(0, 0, 0))
+	ply:SetVelocity(Vector(0, 0, 0))
 
 	return ragdoll
 end

@@ -3,6 +3,8 @@ util.AddNetworkString("downedPlayerLocation")
 include("revive/sh_revive.lua")
 
 hook.Add("PlayerHurt", "HSR_ph", function(ply, atkr, hp, dmg)
+	if GetConVar("hsr_enable"):GetInt() < 1 then return end 
+
 	if not ply:GetNWBool("downed") and hp <= 0  then 
 		ply:SetHealth(ply:GetMaxHealth())
 		if ply:InVehicle() then ply:ExitVehicle() end

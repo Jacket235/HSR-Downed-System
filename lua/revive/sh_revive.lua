@@ -1,6 +1,7 @@
 HSR = {}
 HSR.downedPlayers = {}
 
+CreateConVar("hsr_enable", "1", { FCVAR_REPLICATED, FCVAR_ARCHIVE }, "Enable addon?")
 CreateConVar("hsr_ragdoll_bleed_out_time", "30", { FCVAR_REPLICATED, FCVAR_ARCHIVE }, "How long the ragdoll will bleed out for")
 CreateConVar("hsr_ragdoll_give_up_time", "1", { FCVAR_REPLICATED, FCVAR_ARCHIVE }, "How long it takes to give up")
 CreateConVar("hsr_ragdoll_revive_time", "4", { FCVAR_REPLICATED, FCVAR_ARCHIVE }, "How long it takes to revive someone")

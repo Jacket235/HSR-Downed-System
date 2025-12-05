@@ -362,6 +362,7 @@ hook.Add("PlayerSpawn", "HSR_ps", function(ply, _)
 	
 	if IsValid(downed_ragdoll) then
 		ply:UnSpectate()
+		downed_ragdoll:SetNWEntity("owner", nil)
 		if GetConVar("hsr_remove_ragdoll_on_death"):GetInt() >= 1 then
 			downed_ragdoll:Remove()
 		end

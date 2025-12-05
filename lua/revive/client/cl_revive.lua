@@ -101,7 +101,7 @@ hook.Add("HUDPaintBackground", "downed_bleed_out_hud", function()
     local ply = LocalPlayer()
     local rag = ply:GetNWEntity("downed_ragdoll")
 
-	if not IsValid(ply) or not IsValid(rag) or not ply:Alive() then return end
+	if not ply:GetNWBool("downed") or not IsValid(ply) or not IsValid(rag) or not ply:Alive() then return end
 
     local bleed_out_time = GetConVar("hsr_ragdoll_bleed_out_time"):GetInt()
     local revive_time = GetConVar("hsr_ragdoll_revive_time"):GetInt()

@@ -243,6 +243,7 @@ hook.Add("Think", "HSR_npc_reviving", function()
 					HSR.downedPlayers[ply] = nil
 					npcSavior.isReviving = false
 					assignedNPCs[ply] = nil
+					rag:Remove()
 					net.Start("downedPlayerLocation")
 					    net.WriteEntity(NULL)       
 					    net.WriteEntity(ply)        

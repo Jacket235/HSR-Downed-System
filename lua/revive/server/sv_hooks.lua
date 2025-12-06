@@ -196,6 +196,7 @@ hook.Add("Think", "HSR_reviving", function()
 				HSR.revivePlayer(ply)
 
 				HSR.downedPlayers[ply] = nil
+				rag:Remove()
 				net.Start("downedPlayerLocation")
 				    net.WriteEntity(NULL)       
 				    net.WriteEntity(ply)        

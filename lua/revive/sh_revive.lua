@@ -46,6 +46,15 @@ HSR.ragdollDamageBoneMultiplier = {
 	[HITGROUP_HEAD] = 5,
 }
 
+cleanup.Register("hsr_corpses")
+
+if CLIENT then
+    language.Add("cleanup_hsr_corpses", "HSR Corpses")
+    language.Add("cleaned_hsr_corpses", "Clean up all HSR Corpses")
+
+    cleanup.UpdateUI()
+end
+
 function HSR.createDownedRagdoll(ply)
 	local ragdoll = ents.Create("prop_ragdoll")
 	ragdoll:SetNWFloat("bleedOutStartTime", CurTime() + .1)
@@ -58,6 +67,10 @@ function HSR.createDownedRagdoll(ply)
 	ragdoll:Spawn()
 	ragdoll:Activate()
 	ragdoll:GetPhysicsObject():SetMass(12.775918006897)
+
+	if ply.AddCleanup then
+		ply:AddCleanup("hsr_corpses", ragdoll)
+	end
 
 	for i = 0, ply:GetNumBodyGroups() - 1 do
 	    ragdoll:SetBodygroup(i, ply:GetBodygroup(i))

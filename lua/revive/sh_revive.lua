@@ -52,7 +52,9 @@ if CLIENT then
     language.Add("cleanup_hsr_corpses", "HSR Corpses")
     language.Add("cleaned_hsr_corpses", "Clean up all HSR Corpses")
 
-    cleanup.UpdateUI()
+    hook.Add("InitPostEntity", "hsr_add_button", function()
+    	cleanup.UpdateUI()
+	end)
 end
 
 function HSR.createDownedRagdoll(ply)

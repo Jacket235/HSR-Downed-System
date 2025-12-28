@@ -105,26 +105,54 @@ hook.Add("OnScreenSizeChanged", "abcdefghijklmnopqrstuvwxyz", function()
     createFont()
 end)
 
-hook.Add("CalcView", "downed_state_view", function(ply, pos, ang, fov)
-	if IsValid(ply:GetNWEntity("downed_ragdoll")) then
-        local downed_ragdoll = ply:GetNWEntity("downed_ragdoll")
+local chasePos
 
-		if ply:GetNWBool("downed") then
-			downed_ragdoll:ManipulateBoneScale(6, Vector(0, 0, 0))
-		else
-			downed_ragdoll:ManipulateBoneScale(6, Vector(1, 1, 1))
-		end
-		
-		if ply:GetNWBool("downed") then
-			local eyes = downed_ragdoll:GetAttachment(downed_ragdoll:LookupAttachment("eyes"))
-            return {
-                origin = eyes.Pos,
-                ang = ang,
-                fov = fov,
-                drawviewer = false
-            }
-		end
-	end
+hook.Add("CalcView", "downed_state_view", function(ply, pos, ang, fov)
+    local downed_ragdoll = ply:GetNWEntity("downed_ragdoll")
+    if not IsValid(downed_ragdoll) then return end
+    if not ply:GetNWBool("downed") then 
+        if not ply:Alive() then
+            downed_ragdoll:ManipulateBoneScale(6, Vector(1, 1, 1))
+        end
+
+        return 
+    end
+
+    if GetConVar("hsr_ragdoll_first_person"):GetInt() >= 1 then
+    	if ply:GetNWBool("downed") then
+    		downed_ragdoll:ManipulateBoneScale(6, Vector(0, 0, 0))
+        end
+    	
+		local eyes = downed_ragdoll:GetAttachment(downed_ragdoll:LookupAttachment("eyes"))
+        
+        return {
+            origin = eyes.Pos
+        }
+    else
+        local target = downed_ragdoll:WorldSpaceCenter() + Vector(0, 0, 20)
+
+        local desired = target - ang:Forward() * 60
+
+        local tr = util.TraceHull({
+            start  = target,
+            endpos = desired,
+            filter = function(ent)
+                if ent:IsPlayer() or ent:IsNPC() then return false end
+            end
+        })
+
+        local finalPos = tr.Hit and (tr.HitPos + tr.HitNormal) or desired
+
+        local t = math.Clamp(FrameTime() * 8, 0, 1)
+        chasePos = chasePos and LerpVector(t, chasePos, finalPos) or finalPos
+
+        local camAng = (target - chasePos):Angle()
+
+        return {
+            origin = chasePos,
+            angles = camAng
+        }
+    end
 end)
 
 local downedPlayers = {}

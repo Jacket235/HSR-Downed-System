@@ -52,6 +52,8 @@ if CLIENT then
     language.Add("cleanup_hsr_corpses", "HSR Corpses")
     language.Add("cleaned_hsr_corpses", "Clean up all HSR Corpses")
 
+    CreateConVar("hsr_ragdoll_first_person", "1", { FCVAR_ARCHIVE }, "First person downed camera?")
+
     hook.Add("InitPostEntity", "hsr_add_button", function()
     	cleanup.UpdateUI()
 	end)

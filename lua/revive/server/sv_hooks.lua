@@ -36,7 +36,7 @@ hook.Add("PlayerHurt", "HSR_ph", function(ply, atkr, hp, dmg)
 end)
 
 hook.Add("OnEntityCreated", "HSR_target_bullseye", function(ent)
-	timer.Simple(1, function()
+	timer.Simple(0, function()
 		if not IsValid(ent) then return end
 		
 		if ent:GetClass() == "npc_bullseye" then

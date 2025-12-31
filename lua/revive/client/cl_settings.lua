@@ -1,5 +1,7 @@
 function HSR.OpenSettings()
-	local scale = 1080 / ScrH()
+    if not LocalPlayer():IsAdmin() then return end
+
+	local scale = ScrW() / 1920 
 	local frameW, frameH = 800 * scale, 600 * scale
 
     local frame = vgui.Create("DFrame")
@@ -85,7 +87,7 @@ function HSR.OpenSettings()
         	// Fill
         	local s = self:GetParent()
 
-		    local percent = (s:GetValue() - s:GetMin()) / (s:GetMax() - s:GetMin())  -- 0 to 1
+		    local percent = (s:GetValue() - s:GetMin()) / (s:GetMax() - s:GetMin())
 		    local fill = w * percent
         	draw.RoundedBox(4, 0, h / 2 - 3, fill, 6, Color(57, 121, 201))
         	// Knob
@@ -101,24 +103,26 @@ function HSR.OpenSettings()
     AddHeader(scroll, "Main settings")
 
     AddCheckbox(scroll, "Enable HSR", "hsr_enable")
-    AddCheckbox(scroll, "Enable remove ragdolls on death", "hsr_remove_ragdoll_on_death")
-    AddCheckbox(scroll, "Enable dragging downed players", "hsr_ragdoll_drag_allowed")
     AddCheckbox(scroll, "Enable first person downed camera", "hsr_ragdoll_first_person", true)
+    AddCheckbox(scroll, "Enable remove ragdolls after death", "hsr_remove_ragdoll_on_death")
+    AddCheckbox(scroll, "Enable dragging downed players", "hsr_ragdoll_drag_allowed")
+    
 
     -- === GENERAL SETTINGS ===
     AddHeader(scroll, "General settings")
 
-    AddSlider(scroll, "Ragdoll bleedout time", "hsr_ragdoll_bleed_out_time", 1, 60)
+    AddSlider(scroll, "Bleedout time", "hsr_ragdoll_bleed_out_time", 1, 60)
     AddSlider(scroll, "Give up time", "hsr_ragdoll_give_up_time", 1, 5)
     AddSlider(scroll, "Revive time", "hsr_ragdoll_revive_time", 1, 30)
+    AddSlider(scroll, "Downed indicator max. distance", "hsr_indicator_max_distance", 500, 2000)
     AddSlider(scroll, "Drag downed force", "hsr_ragdoll_drag_force", 1, 10)
 
     -- === NPC SETTINGS ===
     AddHeader(scroll, "NPC settings")
 
     AddCheckbox(scroll, "Enable NPCs to revive downed players", "hsr_npc_revive_allowed")
-    AddSlider(scroll, "NPC visibility radius", "hsr_ragdoll_npc_search_radius", 100, 5000)
-    AddSlider(scroll, "NPC revive radius", "hsr_ragdoll_npc_revive_radius", 50, 80)
+    AddSlider(scroll, "NPC search max. distance", "hsr_ragdoll_npc_search_radius", 100, 5000)
+    AddSlider(scroll, "NPC revive distance", "hsr_ragdoll_npc_revive_radius", 50, 80)
 end
 
 concommand.Add("hsr_settings", HSR.OpenSettings)

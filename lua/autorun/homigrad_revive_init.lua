@@ -1,5 +1,6 @@
 if SERVER then
-	AddCSLuaFile("revive/client/cl_revive.lua")
+	AddCSLuaFile("revive/client/cl_hud.lua")
+	AddCSLuaFile("revive/client/cl_settings.lua")
 	AddCSLuaFile("revive/sh_revive.lua")
 	include("revive/server/sv_hooks.lua")
 	include("revive/sh_revive.lua")
@@ -15,6 +16,7 @@ if SERVER then
 	resource.AddSingleFile("resource/fonts/D-DINExp-Italic.ttf")
 	resource.AddSingleFile("resource/fonts/D-DIN-Italic.ttf")
 else
-	include("revive/client/cl_revive.lua")
+	include("revive/client/cl_hud.lua")
+	include("revive/client/cl_settings.lua")
 	include("revive/sh_revive.lua")
 end

@@ -1,4 +1,5 @@
 util.AddNetworkString("downedPlayerLocation")
+util.AddNetworkString("changeConVarValue")
 
 include("revive/sh_revive.lua")
 
@@ -383,4 +384,27 @@ end)
 
 hook.Add("CanPlayerEnterVehicle", "PrintPlayersInVehicles", function(ply, _, _)
 	if ply:GetNWBool("downed") then return false end 
+end)
+
+net.Receive("changeConVarValue", function(len, ply)
+    if not ply:IsAdmin() then return end
+    
+    local cvarName = net.ReadString()
+    local valueType = net.ReadUInt(2)
+
+    local value
+    if valueType == 0 then
+        value = net.ReadBool()
+    elseif valueType == 1 then
+        value = net.ReadFloat()
+    end
+
+    local cvar = GetConVar(cvarName)
+    if not cvar then return end
+
+    if valueType == 0 then
+        cvar:SetBool(value)
+    elseif valueType == 1 then
+        cvar:SetFloat(value)
+    end
 end)

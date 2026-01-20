@@ -37,6 +37,8 @@ hook.Add("PlayerHurt", "HSR_ph", function(ply, atkr, hp, dmg)
 end)
 
 hook.Add("OnEntityCreated", "HSR_target_bullseye", function(ent)
+	if GetConVar("hsr_ragdoll_invulnerable"):GetInt() >= 1 then return end
+
 	timer.Simple(0, function()
 		if not IsValid(ent) then return end
 		
@@ -298,6 +300,7 @@ hook.Add("EntityTakeDamage", "HSR_etd", function(ent, dmgInfo)
 
 	local ply = ent:GetNWEntity("owner")
 	if not IsValid(ply) or not ply:Alive() then return end
+	if ent:GetClass() != "prop_ragdoll" or GetConVar("hsr_ragdoll_invulnerable"):GetInt() >= 1 then return end
 
 	local dmgType = dmgInfo:GetDamageType()
 	if CurTime() - ent:GetNWFloat("bleedOutStartTime") < 2 and dmgType == DMG_CRUSH then return end
@@ -333,29 +336,31 @@ end)
 hook.Add("PlayerDeath", "HSR_pd", function(ply, _, atkr)
 	local downed_ragdoll = ply:GetNWEntity("downed_ragdoll")
 
-	if IsValid(downed_ragdoll) then 
-		if IsValid(ply:GetRagdollEntity()) then
-			ply:GetRagdollEntity():Remove()
-		end
+	if not IsValid(downed_ragdoll) then return end
 
-		ply:SetNWBool("downed", false)
-        ply:Spectate(OBS_MODE_CHASE)
-        ply:SetMoveType(MOVETYPE_OBSERVER)
-        ply:SetCollisionGroup(COLLISION_GROUP_IN_VEHICLE)
-        ply:SpectateEntity(downed_ragdoll)
-        
-        HSR.downedPlayers[ply] = nil
-        net.Start("downedPlayerLocation")
-		    net.WriteEntity(NULL)      
-		    net.WriteEntity(ply)       
-		net.Broadcast()
+	if IsValid(ply:GetRagdollEntity()) then
+		ply:GetRagdollEntity():Remove()
+	end
 
-		for _, npc in ipairs(ents.FindByClass("npc_*")) do
-			if not IsValid(npc) or not npc:IsNPC() then continue end
-			
-			if npc:GetEnemy() == downed_ragdoll.bullseye then
-				npc:AddEntityRelationship(downed_ragdoll.bullseye, D_NU, 0)
-			end
+	ply:SetNWBool("downed", false)
+    ply:Spectate(OBS_MODE_CHASE)
+    ply:SetMoveType(MOVETYPE_OBSERVER)
+    ply:SetCollisionGroup(COLLISION_GROUP_IN_VEHICLE)
+    ply:SpectateEntity(downed_ragdoll)
+    
+    HSR.downedPlayers[ply] = nil
+    net.Start("downedPlayerLocation")
+	    net.WriteEntity(NULL)      
+	    net.WriteEntity(ply)       
+	net.Broadcast()
+
+	if GetConVar("hsr_ragdoll_invulnerable"):GetInt() >= 1 then return end
+
+	for _, npc in ipairs(ents.FindByClass("npc_*")) do
+		if not IsValid(npc) or not npc:IsNPC() then continue end
+		
+		if npc:GetEnemy() == downed_ragdoll.bullseye then
+			npc:AddEntityRelationship(downed_ragdoll.bullseye, D_NU, 0)
 		end
 	end
 end)
@@ -363,19 +368,19 @@ end)
 hook.Add("PlayerSpawn", "HSR_ps", function(ply, _)
 	local downed_ragdoll = ply:GetNWEntity("downed_ragdoll")
 	
-	if IsValid(downed_ragdoll) then
-		ply:UnSpectate()
-		downed_ragdoll:SetNWEntity("owner", nil)
-		if GetConVar("hsr_remove_ragdoll_on_death"):GetInt() >= 1 then
-			downed_ragdoll:Remove()
-		end
-		ply:SetNWEntity("downed_ragdoll", nil)
+	if not IsValid(downed_ragdoll) then return end
 
-		ply:DrawViewModel(true)
-		ply:SetNoDraw(false)
-		ply:SetNoTarget(false)
-		ply:SetNotSolid(false)
+	ply:UnSpectate()
+	downed_ragdoll:SetNWEntity("owner", nil)
+	if GetConVar("hsr_remove_ragdoll_on_death"):GetInt() >= 1 then
+		downed_ragdoll:Remove()
 	end
+	ply:SetNWEntity("downed_ragdoll", nil)
+
+	ply:DrawViewModel(true)
+	ply:SetNoDraw(false)
+	ply:SetNoTarget(false)
+	ply:SetNotSolid(false)
 end)
 
 hook.Add( "PlayerCanPickupWeapon", "HSR_no_pickup_while_downed", function(ply, _)

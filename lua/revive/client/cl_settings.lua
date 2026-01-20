@@ -105,6 +105,7 @@ function HSR.OpenSettings()
     AddCheckbox(scroll, "Enable HSR", "hsr_enable")
     AddCheckbox(scroll, "Enable first person downed camera", "hsr_ragdoll_first_person", true)
     AddCheckbox(scroll, "Enable remove ragdolls after death", "hsr_remove_ragdoll_on_death")
+    AddCheckbox(scroll, "Enable invulnerable ragdolls", "hsr_ragdoll_invulnerable")
     AddCheckbox(scroll, "Enable dragging downed players", "hsr_ragdoll_drag_allowed")
     
 

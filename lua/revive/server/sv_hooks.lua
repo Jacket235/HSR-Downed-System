@@ -321,6 +321,23 @@ end)
 
 hook.Add("PlayerUse", "HSR_pu", function(user, ent)
 	if not IsValid(ent) or ent:GetClass() != "prop_ragdoll" then return end
+
+	local whitelist = GetConVar("hsr_revive_whitelist_teams"):GetString()
+	if whitelist != "" then
+		local userTeamID = user:Team()
+		local allowedTeams = string.Explode(" ", whitelist)
+		local isAllowed = false
+
+		for _, idStr in ipairs(allowedTeams) do
+			if tonumber(idStr) == userTeamID then
+				isAllowed = true
+				break
+			end
+		end
+
+		if not isAllowed then return end
+	end
+
 	local plyDowned = ent:GetNWEntity("owner")
 	if not IsValid(plyDowned) then return end
 
@@ -402,6 +419,8 @@ net.Receive("changeConVarValue", function(len, ply)
         value = net.ReadBool()
     elseif valueType == 1 then
         value = net.ReadFloat()
+    elseif valueType == 2 then
+        value = net.ReadString()
     end
 
     local cvar = GetConVar(cvarName)
@@ -411,5 +430,7 @@ net.Receive("changeConVarValue", function(len, ply)
         cvar:SetBool(value)
     elseif valueType == 1 then
         cvar:SetFloat(value)
+    elseif valueType == 2 then
+        cvar:SetString(value)
     end
 end)

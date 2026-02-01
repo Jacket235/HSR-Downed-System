@@ -99,6 +99,42 @@ function HSR.OpenSettings()
         return slider
     end
 
+    local function AddTextEntry(parent, text, convar)
+        local pnl = vgui.Create("DPanel", parent)
+        pnl:Dock(TOP)
+        pnl:DockMargin(10, 5, 10, 5)
+        pnl:SetTall(50)
+        pnl.Paint = function() end
+
+        local lbl = vgui.Create("DLabel", pnl)
+        lbl:SetText(text)
+        lbl:SetFont("DermaDefault")
+        lbl:SetTextColor(color_white)
+        lbl:Dock(TOP)
+        lbl:DockMargin(0, 0, 0, 5)
+
+        local entry = vgui.Create("DTextEntry", pnl)
+        entry:Dock(TOP)
+        entry:SetTall(25)
+        entry:SetText(GetConVar(convar):GetString())
+        
+        function entry:OnEnter()
+            local val = self:GetValue()
+            net.Start("changeConVarValue")
+                net.WriteString(convar)
+                net.WriteUInt(2, 2)
+                net.WriteString(val)
+            net.SendToServer()
+        end
+        
+        function entry:Paint(w, h)
+            draw.RoundedBox(4, 0, 0, w, h, Color(52, 52, 57))
+            self:DrawTextEntryText(color_white, Color(57, 121, 201), color_white)
+        end
+
+        return pnl
+    end
+
     -- === MAIN SETTINGS ===
     AddHeader(scroll, "Main settings")
 
@@ -117,6 +153,7 @@ function HSR.OpenSettings()
     AddSlider(scroll, "Revive time", "hsr_ragdoll_revive_time", 1, 30)
     AddSlider(scroll, "Downed indicator max. distance", "hsr_indicator_max_distance", 500, 2000)
     AddSlider(scroll, "Drag downed force", "hsr_ragdoll_drag_force", 1, 10)
+    AddTextEntry(scroll, "Teams allowed to revive (Team IDs, seperated by a single space. Leave blank for everyone)", "hsr_revive_whitelist_teams")
 
     -- === NPC SETTINGS ===
     AddHeader(scroll, "NPC settings")

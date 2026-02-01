@@ -13,6 +13,7 @@ CreateConVar("hsr_ragdoll_npc_revive_radius", "60", { FCVAR_REPLICATED, FCVAR_AR
 CreateConVar("hsr_ragdoll_drag_allowed", "1", { FCVAR_REPLICATED, FCVAR_ARCHIVE }, "Can players drag downed players")
 CreateConVar("hsr_ragdoll_drag_force", "5", { FCVAR_REPLICATED, FCVAR_ARCHIVE }, "With how much force the ragdoll is dragged")
 CreateConVar("hsr_remove_ragdoll_on_death", "1", { FCVAR_REPLICATED, FCVAR_ARCHIVE }, "Should ragdolls be removed on death?")
+CreateConVar("hsr_revive_whitelist_teams", "", { FCVAR_REPLICATED, FCVAR_ARCHIVE }, "Teams that are whitelisted to reviving (names separated by a single space)")
 
 HSR.boneToHitGroup = { 
     ["ValveBiped.Bip01_Head1"] = 1,

@@ -231,6 +231,22 @@ end)
 hook.Add("PostDrawOpaqueRenderables", "draw_downed_players_icons", function()
     if table.IsEmpty(downedPlayers) then return end
 
+    local whitelist = GetConVar("hsr_revive_whitelist_teams"):GetString()
+    if whitelist != "" then
+        local userTeamID = LocalPlayer():Team()
+        local allowedTeams = string.Explode(" ", whitelist)
+        local isAllowed = false
+
+        for _, idStr in ipairs(allowedTeams) do
+            if tonumber(idStr) == userTeamID then
+                isAllowed = true
+                break
+            end
+        end
+
+        if not isAllowed then return end
+    end
+
     local bleed_out_time = GetConVar("hsr_ragdoll_bleed_out_time"):GetInt()
     local revive_time = GetConVar("hsr_ragdoll_revive_time"):GetInt()
     local maxIndicatorDistance = GetConVar("hsr_indicator_max_distance"):GetInt()

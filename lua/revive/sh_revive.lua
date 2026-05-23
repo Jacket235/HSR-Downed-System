@@ -162,7 +162,12 @@ function HSR.revivePlayer(ply)
 	ply:SetNWBool("downed", false)
 
 	ply:UnSpectate()
-	ply:Spawn()
+	ply:SetNotSolid(false)
+	ply:DrawViewModel(true)
+	ply:SetNoDraw(false)
+	ply:SetNoTarget(false)
+	ply:SetMoveType(MOVETYPE_WALK)
+
 	ply:SetHealth(ply:GetMaxHealth() * .3)
 	ply:StripWeapons()
 	ply:StripAmmo()

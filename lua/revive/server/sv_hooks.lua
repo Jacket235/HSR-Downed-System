@@ -7,6 +7,13 @@ hook.Add("PlayerHurt", "HSR_ph", function(ply, atkr, hp, dmg)
 	if GetConVar("hsr_enable"):GetInt() < 1 then return end 
 
 	if not ply:GetNWBool("downed") and hp <= 0  then 
+		local maxDowns = GetConVar("hsr_max_downs"):GetInt()
+        if maxDowns > 0 then
+            ply.hsr_downCount = (ply.hsr_downCount or 0) + 1
+            
+            if ply.hsr_downCount > maxDowns then return end
+        end
+		
 		ply:SetHealth(ply:GetMaxHealth())
 		if ply:InVehicle() then ply:ExitVehicle() end
 
@@ -385,6 +392,7 @@ end)
 hook.Add("PlayerSpawn", "HSR_ps", function(ply, _)
 	local downed_ragdoll = ply:GetNWEntity("downed_ragdoll")
 	
+	ply.hsr_downCount = 0
 	if not IsValid(downed_ragdoll) then return end
 
 	ply:UnSpectate()

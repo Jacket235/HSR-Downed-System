@@ -6,6 +6,7 @@ CreateConVar("hsr_ragdoll_invulnerable", "0", { FCVAR_REPLICATED, FCVAR_ARCHIVE 
 CreateConVar("hsr_ragdoll_bleed_out_time", "30", { FCVAR_REPLICATED, FCVAR_ARCHIVE }, "How long the ragdoll will bleed out for")
 CreateConVar("hsr_ragdoll_give_up_time", "1", { FCVAR_REPLICATED, FCVAR_ARCHIVE }, "How long it takes to give up")
 CreateConVar("hsr_ragdoll_revive_time", "4", { FCVAR_REPLICATED, FCVAR_ARCHIVE }, "How long it takes to revive someone")
+CreateConVar("hsr_max_downs", "3", { FCVAR_REPLICATED, FCVAR_ARCHIVE }, "Maximum times a player can be downed before permanent death (0 = unlimited)")
 CreateConVar("hsr_indicator_max_distance", "4000", { FCVAR_REPLICATED, FCVAR_ARCHIVE }, "From how far away can downed indicators be seen")
 CreateConVar("hsr_npc_revive_allowed", "1", { FCVAR_REPLICATED, FCVAR_ARCHIVE }, "Are NPCs allowed to revive you")
 CreateConVar("hsr_ragdoll_npc_search_radius", "500", { FCVAR_REPLICATED, FCVAR_ARCHIVE }, "Maximum distance for NPCs to come to you")
